@@ -3,17 +3,10 @@
     <h2>LinkedIn Comment Plugin</h2>
     <n-space vertical>
       <div class="switch-item">
-        <label>Hide Feed Updates</label>
+        <label>Hide Feed</label>
         <n-switch 
           v-model:value="hiddenMode" 
           @update:value="toggleClass('myext-hidden-mode', $event)"
-        />
-      </div>
-      <div class="switch-item">
-        <label>Hide Messages</label>
-        <n-switch 
-          v-model:value="hideMessages" 
-          @update:value="toggleClass('myext-hide-messages', $event)"
         />
       </div>
       <div class="switch-item">
@@ -23,12 +16,19 @@
           @update:value="toggleClass('myext-hide-notifications', $event)"
         />
       </div>
+      <div class="switch-item">
+        <label>Hide Messages</label>
+        <n-switch 
+          v-model:value="hideMessages" 
+          @update:value="toggleClass('myext-hide-messages', $event)"
+        />
+      </div>
     </n-space>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, type Ref } from 'vue'
 import { NSwitch, NSpace } from 'naive-ui'
 
 // Reactive state for each switch
@@ -38,25 +38,26 @@ const hideNotifications = ref(false)
 
 // Function to send message to content script
 const toggleClass = async (className: string, status: boolean) => {
-  console.log('status', status);
   try {
     // Get the active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     
     if (tab?.id) {
       // Send message to content script
-      await chrome.tabs.sendMessage(tab.id, {
-        type: 'TOGGLE_CLASS',
-        className: className,
-        status: status
-      })
+      await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_CLASS', className, status })
     }
   } catch (error) {
     console.error('Error sending message to content script:', error)
     // Reset the switch state if message failed
-    if (className === 'myext-hidden-mode') hiddenMode.value = !status
-    if (className === 'myext-hide-messages') hideMessages.value = !status
-    if (className === 'myext-hide-notifications') hideNotifications.value = !status
+    const toggleMap: Record<string, Ref<boolean>> = {
+      'myext-hidden-mode': hiddenMode,
+      'myext-hide-messages': hideMessages,
+      'myext-hide-notifications': hideNotifications
+    }
+
+    if (className in toggleMap) {
+      toggleMap[className].value = !status
+    }
   }
 }
 
