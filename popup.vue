@@ -27,7 +27,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { NSwitch, NSpace } from 'naive-ui'
 
@@ -37,20 +37,19 @@ const hideMessages = ref(false)
 const hideNotifications = ref(false)
 
 // Function to send message to content script
-const toggleClass = async (className, status) => {
+const toggleClass = async (className: string, status: boolean) => {
+  console.log('status', status);
   try {
     // Get the active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     
-    if (tab?.id && tab.url?.includes('linkedin.com')) {
+    if (tab?.id) {
       // Send message to content script
       await chrome.tabs.sendMessage(tab.id, {
         type: 'TOGGLE_CLASS',
         className: className,
         status: status
       })
-    } else {
-      console.warn('Extension can only be used on LinkedIn pages')
     }
   } catch (error) {
     console.error('Error sending message to content script:', error)
@@ -66,7 +65,7 @@ onMounted(async () => {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     
-    if (tab?.id && tab.url?.includes('linkedin.com')) {
+    if (tab?.id) {
       // Execute script to check current classes
       const results = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -85,8 +84,6 @@ onMounted(async () => {
         hideMessages.value = hm2
         hideNotifications.value = hn
       }
-    } else {
-      console.warn('Extension can only be used on LinkedIn pages')
     }
   } catch (error) {
     console.error('Error reading current state:', error)

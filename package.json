@@ -23,7 +23,7 @@
   },
   "manifest": {
     "host_permissions": [
-      "https://*/*"
+      "https://www.linkedin.com/*"
     ]
   }
 }
