@@ -75,7 +75,7 @@ onMounted(async () => {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     
-    if (tab?.id && tab.url?.includes('linkedin.com')) {
+    if (tab?.id) {
       // Check if scripting API is available
       if (chrome.scripting && chrome.scripting.executeScript) {
         // Execute script to check current classes

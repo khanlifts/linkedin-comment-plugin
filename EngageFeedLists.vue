@@ -196,7 +196,7 @@ const generateUUID = () => {
 
 const generateFeedURL = (profileIds) => {
   const idsParam = profileIds.join(',')
-  return `https://www.linkedin.com/search/results/content/?fromMember=${idsParam}&sortBy="date_posted"`
+  return `https://www.linkedin.com/search/results/content/?sid=${idsParam}&sortBy="date_posted"`
 }
 
 // Storage functions - Use chrome.storage.local as primary storage

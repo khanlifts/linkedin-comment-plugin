@@ -1,18 +1,42 @@
 // Content script for adding "Add to List" button on LinkedIn profiles
 // This script runs on LinkedIn profile pages and adds the custom button
 
-// Check if we're on a LinkedIn profile page
-if (window.location.hostname.includes('linkedin.com') && window.location.pathname.includes('/in/')) {
+// Import CSS styles
+import './profile-button.css'
+
+// Check if we're on a LinkedIn page
+if (window.location.hostname.includes('linkedin.com')) {
   
   // Function to extract profile information
   const getProfileInfo = () => {
-    const nameElement = document.querySelector('h1.text-heading-xlarge, .pv-text-details__left-panel h1, .ph5 h1')
-    const titleElement = document.querySelector('.text-body-medium.break-words, .pv-text-details__left-panel .text-body-medium, .ph5 .text-body-medium')
+    // Try multiple selectors for name and title
+    const nameElement = document.querySelector('h1.text-heading-xlarge, .pv-text-details__left-panel h1, .ph5 h1, h1[data-test-id="profile-name"], .pvs-header__title h1')
+    const titleElement = document.querySelector('.text-body-medium.break-words, .pv-text-details__left-panel .text-body-medium, .ph5 .text-body-medium, .pvs-header__headline, [data-test-id="profile-headline"]')
     const profileUrl = window.location.href
     
-    // Extract LinkedIn ID from URL
-    const profileIdMatch = profileUrl.match(/\/in\/([^\/\?]+)/)
-    const profileId = profileIdMatch ? profileIdMatch[1] : null
+    // Extract LinkedIn ID from URL - try both numeric ID and username
+    let profileId = null
+    
+    // First try to get numeric ID from the page (more reliable for feed URLs)
+    const numericIdElement = document.querySelector('[data-member-id], [data-profile-id], input[name="memberId"]')
+    if (numericIdElement) {
+      profileId = numericIdElement.getAttribute('data-member-id') || 
+                  numericIdElement.getAttribute('data-profile-id') ||
+                  numericIdElement.value
+    }
+    
+    // Fallback to URL-based extraction
+    if (!profileId) {
+      const profileIdMatch = profileUrl.match(/\/in\/([^\/\?]+)/)
+      profileId = profileIdMatch ? profileIdMatch[1] : null
+    }
+    
+    console.log('LinkedIn Extension: Extracted profile info:', {
+      id: profileId,
+      name: nameElement?.textContent?.trim() || 'Unknown',
+      title: titleElement?.textContent?.trim() || '',
+      url: profileUrl
+    })
     
     return {
       id: profileId,
@@ -140,16 +164,21 @@ if (window.location.hostname.includes('linkedin.com') && window.location.pathnam
     }, 3000)
   }
 
-  // Function to inject the button
+  // Function to inject the button (only on profile pages)
   const injectButton = () => {
-    // Find the profile action buttons area - try multiple selectors
-    let actionButtonsArea = document.querySelector('.pv-top-card__actions, .ph5 .pv-top-card__actions, .pvs-header__actions')
+    // Only inject on profile pages
+    if (!window.location.pathname.includes('/in/')) {
+      return
+    }
+    // Find the profile action buttons area - try multiple selectors including the new one
+    let actionButtonsArea = document.querySelector('.pvs-profile-actions__custom, .pv-top-card__actions, .ph5 .pv-top-card__actions, .pvs-header__actions')
     
     // If not found, look for the button container or the "Mehr" button's parent
     if (!actionButtonsArea) {
-      const mehrButton = document.querySelector('button[aria-label="Weitere Aktionen"], button[id*="profile-overflow-action"]')
+      const mehrButton = document.querySelector('button[aria-label="Weitere Aktionen"], button[aria-label="Mehr"], button[id*="profile-overflow-action"]')
       if (mehrButton) {
-        actionButtonsArea = mehrButton.closest('.pv-top-card__actions') || 
+        actionButtonsArea = mehrButton.closest('.pvs-profile-actions__custom') ||
+                          mehrButton.closest('.pv-top-card__actions') || 
                           mehrButton.closest('.pvs-header__actions') ||
                           mehrButton.closest('.ph5') ||
                           mehrButton.parentElement
@@ -160,15 +189,22 @@ if (window.location.hostname.includes('linkedin.com') && window.location.pathnam
     if (!actionButtonsArea) {
       const nachrichtButton = document.querySelector('button[aria-label*="Nachricht"], button[aria-label*="Message"]')
       if (nachrichtButton) {
-        actionButtonsArea = nachrichtButton.closest('.pv-top-card__actions') || 
+        actionButtonsArea = nachrichtButton.closest('.pvs-profile-actions__custom') ||
+                          nachrichtButton.closest('.pv-top-card__actions') || 
                           nachrichtButton.closest('.pvs-header__actions') ||
                           nachrichtButton.closest('.ph5') ||
                           nachrichtButton.parentElement
       }
     }
     
+    // Additional fallback: look for the specific div with the class from the image
+    if (!actionButtonsArea) {
+      actionButtonsArea = document.querySelector('.LJMnFhQbkaHbZlWMTaInpCStHcMvMYk.pvs-profile-actions__custom')
+    }
+    
     if (actionButtonsArea && !document.getElementById('linkedin-extension-add-to-list')) {
       console.log('LinkedIn Extension: Found action buttons area:', actionButtonsArea)
+      console.log('LinkedIn Extension: Action buttons area classes:', actionButtonsArea.className)
       const buttonContainer = createAddToListButton()
       actionButtonsArea.appendChild(buttonContainer)
       console.log('LinkedIn Extension: Button injected successfully')
@@ -211,6 +247,9 @@ if (window.location.hostname.includes('linkedin.com') && window.location.pathnam
       })
     } else if (!actionButtonsArea) {
       console.log('LinkedIn Extension: Could not find action buttons area')
+      console.log('LinkedIn Extension: Available elements with pvs-profile-actions:', document.querySelectorAll('[class*="pvs-profile-actions"]'))
+      console.log('LinkedIn Extension: Available elements with profile-actions:', document.querySelectorAll('[class*="profile-actions"]'))
+      console.log('LinkedIn Extension: Available buttons:', document.querySelectorAll('button[aria-label*="Nachricht"], button[aria-label*="Message"], button[aria-label*="Mehr"]'))
     } else {
       console.log('LinkedIn Extension: Button already exists')
     }
