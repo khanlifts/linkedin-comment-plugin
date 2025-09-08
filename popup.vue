@@ -1,35 +1,44 @@
 <template>
-  <div class="popup">
-    <h2>LinkedIn Comment Plugin</h2>
-    <n-space vertical>
-      <div class="switch-item">
-        <label>Hide Feed</label>
-        <n-switch 
-          v-model:value="hiddenMode" 
-          @update:value="toggleClass('myext-hidden-mode', $event)"
-        />
+  <n-message-provider>
+    <div class="popup">
+      <!-- Notification Controls Section -->
+      <div class="notification-section">
+        <h2>LinkedIn Comment Plugin</h2>
+        <n-space vertical>
+          <div class="switch-item">
+            <label>Hide Feed Updates</label>
+            <n-switch 
+              v-model:value="hiddenMode" 
+              @update:value="toggleClass('myext-hidden-mode', $event)"
+            />
+          </div>
+          <div class="switch-item">
+            <label>Hide Messages</label>
+            <n-switch 
+              v-model:value="hideMessages" 
+              @update:value="toggleClass('myext-hide-messages', $event)"
+            />
+          </div>
+          <div class="switch-item">
+            <label>Hide Notifications</label>
+            <n-switch 
+              v-model:value="hideNotifications" 
+              @update:value="toggleClass('myext-hide-notifications', $event)"
+            />
+          </div>
+        </n-space>
       </div>
-      <div class="switch-item">
-        <label>Hide Notifications</label>
-        <n-switch 
-          v-model:value="hideNotifications" 
-          @update:value="toggleClass('myext-hide-notifications', $event)"
-        />
-      </div>
-      <div class="switch-item">
-        <label>Hide Messages</label>
-        <n-switch 
-          v-model:value="hideMessages" 
-          @update:value="toggleClass('myext-hide-messages', $event)"
-        />
-      </div>
-    </n-space>
-  </div>
+
+      <!-- Engage Feed Lists Section -->
+      <EngageFeedLists />
+    </div>
+  </n-message-provider>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, type Ref } from 'vue'
-import { NSwitch, NSpace } from 'naive-ui'
+import { NSwitch, NSpace, NMessageProvider } from 'naive-ui'
+import EngageFeedLists from './EngageFeedLists.vue'
 
 // Reactive state for each switch
 const hiddenMode = ref(false)
@@ -66,28 +75,34 @@ onMounted(async () => {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     
-    if (tab?.id) {
-      // Execute script to check current classes
-      const results = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => {
-          return {
-            hiddenMode: document.body.classList.contains('myext-hidden-mode'),
-            hideMessages: document.body.classList.contains('myext-hide-messages'),
-            hideNotifications: document.body.classList.contains('myext-hide-notifications')
+    if (tab?.id && tab.url?.includes('linkedin.com')) {
+      // Check if scripting API is available
+      if (chrome.scripting && chrome.scripting.executeScript) {
+        // Execute script to check current classes
+        const results = await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: () => {
+            return {
+              hiddenMode: document.body.classList.contains('myext-hidden-mode'),
+              hideMessages: document.body.classList.contains('myext-hide-messages'),
+              hideNotifications: document.body.classList.contains('myext-hide-notifications')
+            }
           }
+        })
+        
+        if (results[0]?.result) {
+          const { hiddenMode: hm, hideMessages: hm2, hideNotifications: hn } = results[0].result
+          hiddenMode.value = hm
+          hideMessages.value = hm2
+          hideNotifications.value = hn
         }
-      })
-      
-      if (results[0]?.result) {
-        const { hiddenMode: hm, hideMessages: hm2, hideNotifications: hn } = results[0].result
-        hiddenMode.value = hm
-        hideMessages.value = hm2
-        hideNotifications.value = hn
+      } else {
+        console.warn('Scripting API not available, skipping state sync')
       }
     }
   } catch (error) {
     console.error('Error reading current state:', error)
+    // Don't throw, just log the error and continue
   }
 })
 </script>
@@ -96,7 +111,12 @@ onMounted(async () => {
 .popup {
   font-family: sans-serif;
   padding: 1rem;
-  min-width: 250px;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.notification-section {
+  margin-bottom: 16px;
 }
 
 h2 {
