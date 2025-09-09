@@ -1,8 +1,8 @@
 {
-  "name": "linkedin-comment-plugin",
-  "displayName": "Linkedin comment plugin",
+  "name": "linkedin-focus-plugin",
+  "displayName": "LinkedIn Focus Plugin",
   "version": "0.0.1",
-  "description": "A browser plugin to streamline commenting on LinkedIn.",
+  "description": "A browser plugin minimize distractions on LinkedIn.",
   "author": "Cyril Khan",
   "scripts": {
     "dev": "plasmo dev",
@@ -26,7 +26,12 @@
       "https://www.linkedin.com/*"
     ],
     "permissions": [
-      "scripting"
-    ]
+      "scripting",
+      "activeTab",
+      "tabs"
+    ],
+    "background": {
+      "service_worker": "background.js"
+    }
   }
 }
