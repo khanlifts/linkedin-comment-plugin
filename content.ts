@@ -45,19 +45,15 @@ style.textContent = `
   }
   
   /* Hide messages */
-  .myext-hide-messages .msg-overlay-list-bubble {
+  .myext-hide-messages .msg-convo-wrapper {
+    opacity: 0 !important;
+  }
+
+  .myext-hide-messages .msg-overlay-container {
     opacity: 0 !important;
   }
   
-  /* Hide notifications */
-  .myext-hide-notifications [data-test-id="notification-nav-item"] {
-    opacity: 0 !important;
-  }
-  
-  .myext-hide-notifications .notifications-nav-item {
-    opacity: 0 !important;
-  }
-  
+  /* Hide notifications */  
   .myext-hide-notifications .notification-badge {
     opacity: 0 !important;
   }

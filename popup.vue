@@ -1,6 +1,6 @@
 <template>
   <div class="popup">
-    <h2>LinkedIn Comment Plugin</h2>
+    <h2>LinkedIn Focus Plugin</h2>
     <n-space vertical>
       <div class="switch-item">
         <label>Hide Feed</label>
