@@ -6,21 +6,21 @@
         <label>Hide Feed</label>
         <n-switch 
           v-model:value="hiddenMode" 
-          @update:value="toggleClass('myext-hidden-mode', $event)"
+          @update:value="toggleClass(CSS_CLASSES.HIDDEN_MODE, $event)"
         />
       </div>
       <div class="switch-item">
         <label>Hide Notifications</label>
         <n-switch 
           v-model:value="hideNotifications" 
-          @update:value="toggleClass('myext-hide-notifications', $event)"
+          @update:value="toggleClass(CSS_CLASSES.HIDE_NOTIFICATIONS, $event)"
         />
       </div>
       <div class="switch-item">
         <label>Hide Messages</label>
         <n-switch 
           v-model:value="hideMessages" 
-          @update:value="toggleClass('myext-hide-messages', $event)"
+          @update:value="toggleClass(CSS_CLASSES.HIDE_MESSAGES, $event)"
         />
       </div>
     </n-space>
@@ -31,10 +31,38 @@
 import { ref, onMounted, type Ref } from 'vue'
 import { NSwitch, NSpace } from 'naive-ui'
 
+// Constants for storage keys (matching content script)
+const STORAGE_KEYS = {
+  HIDDEN_MODE: 'hiddenMode',
+  HIDE_MESSAGES: 'hideMessages',
+  HIDE_NOTIFICATIONS: 'hideNotifications'
+} as const
+
+// Constants for CSS class names (matching content script)
+const CSS_CLASSES = {
+  HIDDEN_MODE: 'myext-hidden-mode',
+  HIDE_MESSAGES: 'myext-hide-messages',
+  HIDE_NOTIFICATIONS: 'myext-hide-notifications'
+} as const
+
 // Reactive state for each switch
 const hiddenMode = ref(false)
 const hideMessages = ref(false)
 const hideNotifications = ref(false)
+
+// Function to save state to storage
+const saveState = async () => {
+  try {
+    await chrome.storage.local.set({
+      [STORAGE_KEYS.HIDDEN_MODE]: hiddenMode.value,
+      [STORAGE_KEYS.HIDE_MESSAGES]: hideMessages.value,
+      [STORAGE_KEYS.HIDE_NOTIFICATIONS]: hideNotifications.value
+    })
+    console.log('State saved to storage')
+  } catch (error) {
+    console.error('Error saving state:', error)
+  }
+}
 
 // Function to send message to content script
 const toggleClass = async (className: string, status: boolean) => {
@@ -45,14 +73,17 @@ const toggleClass = async (className: string, status: boolean) => {
     if (tab?.id) {
       // Send message to content script
       await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_CLASS', className, status })
+      
+      // Save state after successful toggle
+      await saveState()
     }
   } catch (error) {
     console.error('Error sending message to content script:', error)
     // Reset the switch state if message failed
     const toggleMap: Record<string, Ref<boolean>> = {
-      'myext-hidden-mode': hiddenMode,
-      'myext-hide-messages': hideMessages,
-      'myext-hide-notifications': hideNotifications
+      [CSS_CLASSES.HIDDEN_MODE]: hiddenMode,
+      [CSS_CLASSES.HIDE_MESSAGES]: hideMessages,
+      [CSS_CLASSES.HIDE_NOTIFICATIONS]: hideNotifications
     }
 
     if (className in toggleMap) {
@@ -61,33 +92,27 @@ const toggleClass = async (className: string, status: boolean) => {
   }
 }
 
-// Optional: Read current state from DOM on mount
+// Load state from storage and apply to DOM on mount
 onMounted(async () => {
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+    // Load state from storage
+    const result = await chrome.storage.local.get([
+      STORAGE_KEYS.HIDDEN_MODE, 
+      STORAGE_KEYS.HIDE_MESSAGES, 
+      STORAGE_KEYS.HIDE_NOTIFICATIONS
+    ])
     
-    if (tab?.id) {
-      // Execute script to check current classes
-      const results = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => {
-          return {
-            hiddenMode: document.body.classList.contains('myext-hidden-mode'),
-            hideMessages: document.body.classList.contains('myext-hide-messages'),
-            hideNotifications: document.body.classList.contains('myext-hide-notifications')
-          }
-        }
-      })
-      
-      if (results[0]?.result) {
-        const { hiddenMode: hm, hideMessages: hm2, hideNotifications: hn } = results[0].result
-        hiddenMode.value = hm
-        hideMessages.value = hm2
-        hideNotifications.value = hn
-      }
-    }
+    // Set the reactive values with fallback to false
+    hiddenMode.value = result[STORAGE_KEYS.HIDDEN_MODE] || false
+    hideMessages.value = result[STORAGE_KEYS.HIDE_MESSAGES] || false
+    hideNotifications.value = result[STORAGE_KEYS.HIDE_NOTIFICATIONS] || false
+    
+    console.log('State loaded from storage:', result)
+    
+    // Note: State is automatically applied when LinkedIn pages load
+    // No need to manually send APPLY_STATE message
   } catch (error) {
-    console.error('Error reading current state:', error)
+    console.error('Error loading state:', error)
   }
 })
 </script>
