@@ -64,13 +64,33 @@ const saveState = async () => {
   }
 }
 
+// Function to check if current page is supported
+const isSupportedPage = (url: string): boolean => {
+  return url.includes('/feed/') || url.includes('/search/results/content/')
+}
+
 // Function to send message to content script
 const toggleClass = async (className: string, status: boolean) => {
   try {
     // Get the active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     
-    if (tab?.id) {
+    if (tab?.id && tab.url) {
+      // Check if current page is supported
+      if (!isSupportedPage(tab.url)) {
+        console.log('Plugin not supported on this page:', tab.url)
+        // Reset the switch state
+        const toggleMap: Record<string, Ref<boolean>> = {
+          [CSS_CLASSES.HIDDEN_MODE]: hiddenMode,
+          [CSS_CLASSES.HIDE_MESSAGES]: hideMessages,
+          [CSS_CLASSES.HIDE_NOTIFICATIONS]: hideNotifications
+        }
+        if (className in toggleMap) {
+          toggleMap[className].value = !status
+        }
+        return
+      }
+      
       // Send message to content script
       await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_CLASS', className, status })
       
@@ -95,7 +115,19 @@ const toggleClass = async (className: string, status: boolean) => {
 // Load state from storage and apply to DOM on mount
 onMounted(async () => {
   try {
-    // Load state from storage
+    // Get the active tab to check if current page is supported
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+    
+    if (tab?.url && !isSupportedPage(tab.url)) {
+      console.log('Plugin not supported on this page, showing default state')
+      // Set default values for unsupported pages
+      hiddenMode.value = false
+      hideMessages.value = false
+      hideNotifications.value = false
+      return
+    }
+    
+    // Load state from storage only for supported pages
     const result = await chrome.storage.local.get([
       STORAGE_KEYS.HIDDEN_MODE, 
       STORAGE_KEYS.HIDE_MESSAGES, 

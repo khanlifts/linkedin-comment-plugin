@@ -1,7 +1,7 @@
 // Content script for LinkedIn Comment Plugin
 // This script runs on LinkedIn pages and handles messages from the popup
 
-// Plasmo configuration - only run on LinkedIn pages
+// Plasmo configuration - run on all LinkedIn pages but check URL
 export const config = {
   matches: ["https://www.linkedin.com/*"],
   run_at: "document_start" // Run as early as possible to prevent flash
@@ -20,6 +20,12 @@ const STORAGE_KEYS = {
   HIDE_MESSAGES: 'hideMessages',
   HIDE_NOTIFICATIONS: 'hideNotifications'
 } as const
+
+// Check if current page is supported
+const isSupportedPage = (): boolean => {
+  const currentPath = window.location.pathname
+  return currentPath.includes('/feed/') || currentPath.includes('/search/results/content/')
+}
 
 // Helper functions for CSS class management
 const addClass = (className: string) => {
@@ -45,6 +51,15 @@ const toggleClass = (className: string, shouldAdd: boolean) => {
 // Elegant function to wait for body and apply saved state
 async function waitForBodyAndApplyState() {
   if (document.body) {
+    // First, immediately remove all CSS classes if page is not supported
+    if (!isSupportedPage()) {
+      console.log('Page not supported, immediately removing all CSS classes')
+      removeClass(CSS_CLASSES.HIDDEN_MODE)
+      removeClass(CSS_CLASSES.HIDE_MESSAGES)
+      removeClass(CSS_CLASSES.HIDE_NOTIFICATIONS)
+      return
+    }
+    
     await applySavedState()
   } else {
     requestAnimationFrame(waitForBodyAndApplyState)
@@ -57,6 +72,16 @@ const applySavedState = async () => {
     // Double-check that body exists (safety net)
     if (!document.body) {
       console.log('Body still not ready, skipping state application')
+      return
+    }
+    
+    // Check if current page is supported
+    if (!isSupportedPage()) {
+      console.log('Page not supported, removing all CSS classes')
+      // Remove all CSS classes on unsupported pages
+      removeClass(CSS_CLASSES.HIDDEN_MODE)
+      removeClass(CSS_CLASSES.HIDE_MESSAGES)
+      removeClass(CSS_CLASSES.HIDE_NOTIFICATIONS)
       return
     }
     
@@ -77,6 +102,17 @@ const applySavedState = async () => {
   }
 }
 
+// Immediately check and clean up CSS classes if on unsupported page
+if (!isSupportedPage()) {
+  console.log('Immediate cleanup: Page not supported, removing CSS classes')
+  // Try to remove classes immediately if body exists
+  if (document.body) {
+    removeClass(CSS_CLASSES.HIDDEN_MODE)
+    removeClass(CSS_CLASSES.HIDE_MESSAGES)
+    removeClass(CSS_CLASSES.HIDE_NOTIFICATIONS)
+  }
+}
+
 // Apply saved state as soon as body is available
 waitForBodyAndApplyState()
 
@@ -88,9 +124,41 @@ if (document.readyState === 'loading') {
   })
 }
 
+// Listen for URL changes (for SPA navigation)
+let currentUrl = window.location.href
+const observer = new MutationObserver(() => {
+  if (window.location.href !== currentUrl) {
+    currentUrl = window.location.href
+    console.log('URL changed to:', currentUrl)
+    
+    // Wait a bit for the page to load, then check
+    setTimeout(() => {
+      if (!isSupportedPage()) {
+        console.log('URL change: Page not supported, removing CSS classes')
+        removeClass(CSS_CLASSES.HIDDEN_MODE)
+        removeClass(CSS_CLASSES.HIDE_MESSAGES)
+        removeClass(CSS_CLASSES.HIDE_NOTIFICATIONS)
+      } else {
+        console.log('URL change: Page supported, applying state')
+        applySavedState()
+      }
+    }, 100)
+  }
+})
+
+// Start observing
+observer.observe(document, { subtree: true, childList: true })
+
 // Listen for messages from the popup
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   console.log('Content script received message:', message)
+  
+  // Check if current page is supported
+  if (!isSupportedPage()) {
+    console.log('Page not supported, ignoring message')
+    sendResponse({ success: false, error: 'Page not supported' })
+    return true
+  }
   
   if (message.type === 'TOGGLE_CLASS') {
     const { className, status } = message
