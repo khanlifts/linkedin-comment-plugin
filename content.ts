@@ -21,6 +21,35 @@ const STORAGE_KEYS = {
   HIDE_NOTIFICATIONS: 'hideNotifications'
 } as const
 
+// Helper function to wait for the correct iframe using polling
+const waitForCorrectIframe = (callback: (iframe: HTMLIFrameElement) => void) => {
+  console.log('waitForCorrectIframe called')
+  let checkCount = 0
+  const maxChecks = 1000 // Stoppe nach ~16 Sekunden
+  
+  const checkIframes = () => {
+    checkCount++
+    const allIframes = document.querySelectorAll('iframe')
+    
+    for (const iframe of allIframes) {
+      if (iframe.getAttribute('data-testid') === 'interop-iframe' && 
+          iframe.src.includes('/preload/')) {
+        console.log(`Iframe found after ${checkCount} checks!`)
+        callback(iframe)
+        return
+      }
+    }
+    
+    if (checkCount < maxChecks) {
+      requestAnimationFrame(checkIframes)
+    } else {
+      console.log('Timeout: Iframe not found after 1000 checks')
+    }
+  }
+  
+  checkIframes()
+}
+
 // Helper functions for CSS class management
 const addClass = (className: string) => {
   if (document.body) {
@@ -44,9 +73,19 @@ const toggleClass = (className: string, shouldAdd: boolean) => {
 
 // Elegant function to wait for body and apply saved state
 async function waitForBodyAndApplyState() {
+  console.log('waitForBodyAndApplyState called')
   if (document.body) {
+    console.log('Body exists, calling waitForCorrectIframe')
+    // Wait for correct iframe and apply state when ready
+    waitForCorrectIframe((iframe) => {
+      console.log('Iframe callback called')
+      // Iframe found, apply state
+      applySavedState()
+    })
+    
     await applySavedState()
   } else {
+    console.log('Body not ready, waiting...')
     requestAnimationFrame(waitForBodyAndApplyState)
   }
 }
