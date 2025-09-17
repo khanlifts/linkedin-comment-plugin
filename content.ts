@@ -23,7 +23,6 @@ const STORAGE_KEYS = {
 
 // Helper function to wait for the correct iframe using polling
 const waitForCorrectIframe = (callback: (iframe: HTMLIFrameElement) => void) => {
-  console.log('waitForCorrectIframe called')
   let checkCount = 0
   const maxChecks = 1000 // Stoppe nach ~16 Sekunden
   
@@ -32,9 +31,8 @@ const waitForCorrectIframe = (callback: (iframe: HTMLIFrameElement) => void) => 
     const allIframes = document.querySelectorAll('iframe')
     
     for (const iframe of allIframes) {
-      if (iframe.getAttribute('data-testid') === 'interop-iframe' && 
-          iframe.src.includes('/preload/')) {
-        console.log(`Iframe found after ${checkCount} checks!`)
+      if (isValidIframe(iframe)) {
+        console.log(`✅ IFRAME FOUND after ${checkCount} checks - Plugin will work!`)
         callback(iframe)
         return
       }
@@ -43,59 +41,101 @@ const waitForCorrectIframe = (callback: (iframe: HTMLIFrameElement) => void) => 
     if (checkCount < maxChecks) {
       requestAnimationFrame(checkIframes)
     } else {
-      console.log('Timeout: Iframe not found after 1000 checks')
+      console.log('❌ IFRAME TIMEOUT - Plugin will NOT work! Found iframes:', Array.from(allIframes).map(f => ({testid: f.getAttribute('data-testid'), src: f.src})))
     }
   }
   
   checkIframes()
 }
 
+const isValidIframe = (iframe: HTMLIFrameElement) => {
+  try {
+    const body = iframe.contentDocument?.body
+      if (!body) return false
+
+      // Prüfe, ob eine der relevanten Message-Klassen im iframe existiert
+      return (
+        body.querySelector('.msg-convo-wrapper') !== null ||
+        body.querySelector('.msg-overlay-container') !== null
+      )
+    } catch (e) {
+      // Zugriff auf iframe nicht erlaubt (z. B. CORS)
+      return false
+    }
+}
+
+// Function to inject CSS styles into iframe
+const injectStylesIntoIframe = (iframe: HTMLIFrameElement) => {
+  if (iframe?.contentDocument?.head) {
+    // Check if styles already exist
+    const existingStyle = iframe.contentDocument.querySelector('style[data-myext]')
+    if (!existingStyle) {
+      const iframeStyle = iframe.contentDocument.createElement('style')
+      iframeStyle.setAttribute('data-myext', 'true')
+      iframeStyle.textContent = style.textContent
+      iframe.contentDocument.head.appendChild(iframeStyle)
+      console.log('✅ CSS INJECTED - Plugin styles active!')
+    }
+  } else {
+    console.log('❌ CSS INJECTION FAILED - iframe not accessible!')
+  }
+}
+
 // Helper functions for CSS class management
-const addClass = (className: string) => {
+const addClass = (className: string, iframe?: HTMLIFrameElement) => {
+  // Haupt-Document
   if (document.body) {
     document.body.classList.add(className)
   }
-}
-
-const removeClass = (className: string) => {
-  if (document.body) {
-    document.body.classList.remove(className)
+  
+  // Iframe (falls übergeben)
+  if (iframe?.contentDocument?.body) {
+    iframe.contentDocument.body.classList.add(className)
   }
 }
 
-const toggleClass = (className: string, shouldAdd: boolean) => {
+const removeClass = (className: string, iframe?: HTMLIFrameElement) => {
+  // Haupt-Document
+  if (document.body) {
+    document.body.classList.remove(className)
+  }
+  
+  // Iframe (falls übergeben)
+  if (iframe?.contentDocument?.body) {
+    iframe.contentDocument.body.classList.remove(className)
+  }
+}
+
+const toggleClass = (className: string, shouldAdd: boolean, iframe?: HTMLIFrameElement) => {
   if (shouldAdd) {
-    addClass(className)
+    addClass(className, iframe)
   } else {
-    removeClass(className)
+    removeClass(className, iframe)
   }
 }
 
 // Elegant function to wait for body and apply saved state
 async function waitForBodyAndApplyState() {
-  console.log('waitForBodyAndApplyState called')
   if (document.body) {
-    console.log('Body exists, calling waitForCorrectIframe')
     // Wait for correct iframe and apply state when ready
     waitForCorrectIframe((iframe) => {
-      console.log('Iframe callback called')
+      // Inject CSS styles into iframe
+      injectStylesIntoIframe(iframe)
       // Iframe found, apply state
-      applySavedState()
+      applySavedState(iframe)
     })
     
     await applySavedState()
   } else {
-    console.log('Body not ready, waiting...')
     requestAnimationFrame(waitForBodyAndApplyState)
   }
 }
 
 // Function to apply saved state from storage
-const applySavedState = async () => {
+const applySavedState = async (iframe?: HTMLIFrameElement) => {
   try {
     // Double-check that body exists (safety net)
     if (!document.body) {
-      console.log('Body still not ready, skipping state application')
       return
     }
     
@@ -106,13 +146,17 @@ const applySavedState = async () => {
     ])
     
     // Apply the states using helper functions
-    toggleClass(CSS_CLASSES.HIDDEN_MODE, result[STORAGE_KEYS.HIDDEN_MODE] || false)
-    toggleClass(CSS_CLASSES.HIDE_MESSAGES, result[STORAGE_KEYS.HIDE_MESSAGES] || false)
-    toggleClass(CSS_CLASSES.HIDE_NOTIFICATIONS, result[STORAGE_KEYS.HIDE_NOTIFICATIONS] || false)
+    toggleClass(CSS_CLASSES.HIDDEN_MODE, result[STORAGE_KEYS.HIDDEN_MODE] || false, iframe)
+    toggleClass(CSS_CLASSES.HIDE_MESSAGES, result[STORAGE_KEYS.HIDE_MESSAGES] || false, iframe)
+    toggleClass(CSS_CLASSES.HIDE_NOTIFICATIONS, result[STORAGE_KEYS.HIDE_NOTIFICATIONS] || false, iframe)
     
-    console.log('Applied saved state on page load:', result)
+    // Only log if something is actually enabled
+    const activeFeatures = Object.entries(result).filter(([key, value]) => value).map(([key]) => key)
+    if (activeFeatures.length > 0) {
+      console.log('🎉 PLUGIN ACTIVE - Features enabled:', activeFeatures)
+    }
   } catch (error) {
-    console.error('Error applying saved state:', error)
+    console.error('❌ Error applying saved state:', error)
   }
 }
 
@@ -129,25 +173,28 @@ if (document.readyState === 'loading') {
 
 // Listen for messages from the popup
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-  console.log('Content script received message:', message)
-  
   if (message.type === 'TOGGLE_CLASS') {
     const { className, status } = message
     
-    // Use helper function for consistent behavior
-    toggleClass(className, status)
+    // Find iframe for toggle
+    const iframe = document.querySelector('iframe[data-testid="interop-iframe"]') as HTMLIFrameElement
     
-    console.log(`Toggled ${className}: ${status}`)
+    // Use helper function for consistent behavior
+    toggleClass(className, status, iframe)
+    
     sendResponse({ success: true })
   }
   
   if (message.type === 'APPLY_STATE') {
     try {
+      // Find iframe for state application
+      const iframe = document.querySelector('iframe[data-testid="interop-iframe"]') as HTMLIFrameElement
+      
       // Use the same function as page load
-      await applySavedState()
+      await applySavedState(iframe)
       sendResponse({ success: true })
     } catch (error) {
-      console.error('Error applying state:', error)
+      console.error('❌ Error applying state:', error)
       sendResponse({ success: false, error: error.message })
     }
   }
@@ -190,12 +237,9 @@ style.textContent = `
 function waitForHeadAndInjectStyles() {
   if (document.head) {
     document.head.appendChild(style)
-    console.log('CSS styles added to head')
   } else {
     requestAnimationFrame(waitForHeadAndInjectStyles)
   }
 }
 
 waitForHeadAndInjectStyles()
-
-console.log('LinkedIn Comment Plugin content script loaded')
