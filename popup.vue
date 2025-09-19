@@ -1,26 +1,29 @@
 <template>
   <div class="popup">
-    <h2>LinkedIn Focus Plugin</h2>
+    <h2>Feed Focus</h2>
     <n-space vertical>
       <div class="switch-item">
-        <label>Hide Feed</label>
-        <n-switch 
-          v-model:value="hiddenMode" 
-          @update:value="toggleClass(CSS_CLASSES.HIDDEN_MODE, $event)"
-        />
-      </div>
-      <div class="switch-item">
         <label>Hide Notifications</label>
-        <n-switch 
-          v-model:value="hideNotifications" 
+        <n-switch
+          :rail-style="railStyle"
+          v-model:value="hideNotifications"
           @update:value="toggleClass(CSS_CLASSES.HIDE_NOTIFICATIONS, $event)"
         />
       </div>
       <div class="switch-item">
         <label>Hide Messages</label>
-        <n-switch 
-          v-model:value="hideMessages" 
+        <n-switch
+          :rail-style="railStyle"
+          v-model:value="hideMessages"
           @update:value="toggleClass(CSS_CLASSES.HIDE_MESSAGES, $event)"
+        />
+      </div>
+      <div class="switch-item">
+        <label>Hide Feed</label>
+        <n-switch
+          :rail-style="railStyle"
+          v-model:value="hiddenMode" 
+          @update:value="toggleClass(CSS_CLASSES.HIDDEN_MODE, $event)"
         />
       </div>
     </n-space>
@@ -30,6 +33,7 @@
 <script setup lang="ts">
 import { ref, onMounted, type Ref } from 'vue'
 import { NSwitch, NSpace } from 'naive-ui'
+import type { CSSProperties } from 'vue'
 
 // Constants for storage keys (matching content script)
 const STORAGE_KEYS = {
@@ -69,11 +73,11 @@ const toggleClass = async (className: string, status: boolean) => {
   try {
     // Get the active tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-    
+
     if (tab?.id) {
       // Send message to content script
       await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_CLASS', className, status })
-      
+
       // Save state after successful toggle
       await saveState()
     }
@@ -90,6 +94,25 @@ const toggleClass = async (className: string, status: boolean) => {
       toggleMap[className].value = !status
     }
   }
+}
+
+function railStyle({ focused, checked }: {
+  focused: boolean
+  checked: boolean
+}) {
+  const style: CSSProperties = {}
+  if (checked) {
+    style.background = '#60AAFC'
+    if (focused) {
+      style.boxShadow = '0 0 0 2px #60AAFC40'
+    }
+  } else {
+    style.background = '#ccc'
+    if (focused) {
+      style.boxShadow = '0 0 0 2px #cccccc40'
+    }
+  }
+  return style
 }
 
 // Load state from storage and apply to DOM on mount
