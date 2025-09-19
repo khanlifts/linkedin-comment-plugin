@@ -1,5 +1,5 @@
-// Content script for LinkedIn Comment Plugin
-// This script runs on LinkedIn pages and handles messages from the popup
+import SideBar from "./SideBar.vue"
+export default SideBar
 
 // Plasmo configuration - only run on LinkedIn pages
 export const config = {

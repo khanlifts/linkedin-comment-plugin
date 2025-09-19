@@ -27,6 +27,9 @@ importers:
       '@types/node':
         specifier: 20.11.5
         version: 20.11.5
+      '@vicons/fluent':
+        specifier: ^0.13.0
+        version: 0.13.0
       prettier:
         specifier: 3.2.4
         version: 3.2.4
@@ -1548,6 +1551,9 @@ packages:
 
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
+
+  '@vicons/fluent@0.13.0':
+    resolution: {integrity: sha512-bYGZsOE3qzvm3Cm43e7tybgGlr5ZUpYqtRZq0g0Tfupe8jIzLolpvQLNUt1zS8Mgt6goTbUk5YH7Fkv16jkykg==}
 
   '@vue/compiler-core@3.3.4':
     resolution: {integrity: sha512-cquyDNvZ6jTbf/+x+AgM2Arrp6G4Dzbb0R64jiG804HRMfRiFXWI6kqUVqZ6ZR0bQhIoQjB4+2bhNtVwndW15g==}
@@ -4896,6 +4902,8 @@ snapshots:
   '@types/relateurl@0.2.33': {}
 
   '@types/trusted-types@2.0.7': {}
+
+  '@vicons/fluent@0.13.0': {}
 
   '@vue/compiler-core@3.3.4':
     dependencies:
