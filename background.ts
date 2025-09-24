@@ -9,14 +9,14 @@ function updateActionState(tabId: number, url: string) {
     // Show the popup icon and enable it
     chrome.action.enable(tabId)
     chrome.action.setTitle({
-      tabId: tabId,
+      tabId,
       title: 'LinkedIn Comment Plugin'
     })
   } else {
     // Hide the popup icon and disable it
     chrome.action.disable(tabId)
     chrome.action.setTitle({
-      tabId: tabId,
+      tabId,
       title: 'LinkedIn Comment Plugin (only works on LinkedIn)'
     })
   }

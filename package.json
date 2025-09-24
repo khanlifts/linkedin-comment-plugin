@@ -1,8 +1,8 @@
 {
   "name": "linkedin-focus-plugin",
-  "displayName": "LinkedIn Focus Plugin",
-  "version": "0.0.1",
-  "description": "A browser plugin minimize distractions on LinkedIn.",
+  "displayName": "Feed Focus",
+  "version": "1.0.3",
+  "description": "Minimize distractions on LinkedIn. Focus on your work and get more done.",
   "author": "Cyril Khan",
   "scripts": {
     "dev": "plasmo dev",
