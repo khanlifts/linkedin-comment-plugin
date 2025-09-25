@@ -1,12 +1,6 @@
 // Content script for LinkedIn Comment Plugin
 // This script runs on LinkedIn pages and handles messages from the popup
 
-// Plasmo configuration - only run on LinkedIn pages
-export const config = {
-  matches: ["https://www.linkedin.com/*"],
-  run_at: "document_start" // Run as early as possible to prevent flash
-}
-
 // Constants for CSS class names
 const CSS_CLASSES = {
   HIDDEN_MODE: 'myext-hidden-mode',

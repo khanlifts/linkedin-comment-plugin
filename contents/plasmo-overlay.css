@@ -1,0 +1,37 @@
+#plasmo-shadow-container {
+  position: fixed !important;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+#plasmo-overlay-0 {
+
+}
+
+.overlay {
+  font-family: sans-serif;
+  padding: 1rem;
+  min-width: 250px;
+  border: 1px solid aqua;
+  background: white;
+}
+
+.overlay__title {
+  margin: 0 0 1rem 0;
+  font-size: 4.2rem;
+  color: #333;
+}
+
+.overlay__switch-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.overlay__label {
+  font-size: 2rem;
+  color: #666;
+  margin-right: 1rem;
+}
