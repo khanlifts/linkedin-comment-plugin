@@ -1,19 +1,4 @@
-// Content script for LinkedIn Comment Plugin
-// This script runs on LinkedIn pages and handles messages from the popup
-
-// Constants for CSS class names
-const CSS_CLASSES = {
-  HIDDEN_MODE: 'myext-hidden-mode',
-  HIDE_MESSAGES: 'myext-hide-messages',
-  HIDE_NOTIFICATIONS: 'myext-hide-notifications'
-} as const
-
-// Constants for storage keys
-const STORAGE_KEYS = {
-  HIDDEN_MODE: 'hiddenMode',
-  HIDE_MESSAGES: 'hideMessages',
-  HIDE_NOTIFICATIONS: 'hideNotifications'
-} as const
+import { CSS_CLASSES, STORAGE_KEYS, toggleClassHelper } from "~utils"
 
 // Helper function to wait for the correct iframe using polling
 const waitForCorrectIframe = (callback: (iframe: HTMLIFrameElement) => void) => {
@@ -75,39 +60,6 @@ const injectStylesIntoIframe = (iframe: HTMLIFrameElement) => {
   }
 }
 
-// Helper functions for CSS class management
-const addClass = (className: string, iframe?: HTMLIFrameElement) => {
-  // Haupt-Document
-  if (document.body) {
-    document.body.classList.add(className)
-  }
-  
-  // Iframe (falls übergeben)
-  if (iframe?.contentDocument?.body) {
-    iframe.contentDocument.body.classList.add(className)
-  }
-}
-
-const removeClass = (className: string, iframe?: HTMLIFrameElement) => {
-  // Haupt-Document
-  if (document.body) {
-    document.body.classList.remove(className)
-  }
-  
-  // Iframe (falls übergeben)
-  if (iframe?.contentDocument?.body) {
-    iframe.contentDocument.body.classList.remove(className)
-  }
-}
-
-const toggleClass = (className: string, shouldAdd: boolean, iframe?: HTMLIFrameElement) => {
-  if (shouldAdd) {
-    addClass(className, iframe)
-  } else {
-    removeClass(className, iframe)
-  }
-}
-
 // Elegant function to wait for body and apply saved state
 async function waitForBodyAndApplyState() {
   if (document.body) {
@@ -138,11 +90,11 @@ const applySavedState = async (iframe?: HTMLIFrameElement) => {
       STORAGE_KEYS.HIDE_MESSAGES, 
       STORAGE_KEYS.HIDE_NOTIFICATIONS
     ])
-    
+
     // Apply the states using helper functions
-    toggleClass(CSS_CLASSES.HIDDEN_MODE, result[STORAGE_KEYS.HIDDEN_MODE] || false, iframe)
-    toggleClass(CSS_CLASSES.HIDE_MESSAGES, result[STORAGE_KEYS.HIDE_MESSAGES] || false, iframe)
-    toggleClass(CSS_CLASSES.HIDE_NOTIFICATIONS, result[STORAGE_KEYS.HIDE_NOTIFICATIONS] || false, iframe)
+    toggleClassHelper(CSS_CLASSES.HIDDEN_MODE, result[STORAGE_KEYS.HIDDEN_MODE] || false, iframe)
+    toggleClassHelper(CSS_CLASSES.HIDE_MESSAGES, result[STORAGE_KEYS.HIDE_MESSAGES] || false, iframe)
+    toggleClassHelper(CSS_CLASSES.HIDE_NOTIFICATIONS, result[STORAGE_KEYS.HIDE_NOTIFICATIONS] || false, iframe)
     
     // Only log if something is actually enabled
     const activeFeatures = Object.entries(result).filter(([key, value]) => value).map(([key]) => key)
@@ -165,8 +117,9 @@ if (document.readyState === 'loading') {
   })
 }
 
-// Listen for messages from the popup
+// Listen for messages from the Content Script UI
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  console.log('message in content.ts', message)
   if (message.type === 'TOGGLE_CLASS') {
     const { className, status } = message
     
@@ -174,11 +127,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     const iframe = document.querySelector('iframe[data-testid="interop-iframe"]') as HTMLIFrameElement
     
     // Use helper function for consistent behavior
-    toggleClass(className, status, iframe)
+    toggleClassHelper(className, status, iframe)
     
     sendResponse({ success: true })
   }
-  
+  // TODO: Check if you have to implement this part in plasmo-overlay.tsx to ensure the state is saved between page loads
   if (message.type === 'APPLY_STATE') {
     try {
       // Find iframe for state application
