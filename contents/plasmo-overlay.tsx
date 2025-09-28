@@ -47,13 +47,16 @@ const PlasmoOverlay = () => {
   }, []);
 
   // Function to save state to storage
-  const saveState = async () => {
+  const saveStateToStorage = async (className: string, status: boolean) => {
     try {
-      await chrome.storage.local.set({
-        [STORAGE_KEYS.HIDDEN_MODE]: hiddenMode,
-        [STORAGE_KEYS.HIDE_MESSAGES]: hideMessages,
-        [STORAGE_KEYS.HIDE_NOTIFICATIONS]: hideNotifications
-      })
+      const classToStorageKeyMap = {
+        [CSS_CLASSES.HIDDEN_MODE]: STORAGE_KEYS.HIDDEN_MODE,
+        [CSS_CLASSES.HIDE_MESSAGES]: STORAGE_KEYS.HIDE_MESSAGES,
+        [CSS_CLASSES.HIDE_NOTIFICATIONS]: STORAGE_KEYS.HIDE_NOTIFICATIONS
+      }
+
+      await chrome.storage.local.set({[classToStorageKeyMap[className]]: status })
+
       console.log('State saved to storage')
     } catch (error) {
       console.error('Error saving state:', error)
@@ -61,7 +64,14 @@ const PlasmoOverlay = () => {
   }
 
 // Function to send message to content script
-  const toggleClass = async (className: string, status: boolean) => {
+  const onChangeHandler = async (className: string, status: boolean) => {
+    if (className === CSS_CLASSES.HIDDEN_MODE) {
+      setHiddenMode(status)
+    } else if (className === CSS_CLASSES.HIDE_MESSAGES) {
+      setHideMessages(status)
+    } else if (className === CSS_CLASSES.HIDE_NOTIFICATIONS) {
+      setHideNotifications(status)
+    }
     try {
       // Find iframe for toggle
       const iframe = document.querySelector('iframe[data-testid="interop-iframe"]') as HTMLIFrameElement
@@ -69,7 +79,8 @@ const PlasmoOverlay = () => {
       // Use helper function for consistent behavior
       toggleClassHelper(className, status, iframe)
       // Save state after successful toggle
-      await saveState()
+
+      await saveStateToStorage(className, status)
     } catch (error) {
       console.error('Error sending message to content script:', error)
       // Reset the switch state if message failed
@@ -94,9 +105,7 @@ const PlasmoOverlay = () => {
                    type="checkbox"
                    checked={hideNotifications}
                    onChange={(e) => {
-                     const newValue = e.target.checked
-                     setHideNotifications(newValue)
-                     toggleClass(CSS_CLASSES.HIDE_NOTIFICATIONS, newValue)
+                     onChangeHandler(CSS_CLASSES.HIDE_NOTIFICATIONS, e.target.checked)
                    }}
             />
             <span className="overlay__switch-slider overlay__switch-slider-round"></span>
@@ -109,9 +118,7 @@ const PlasmoOverlay = () => {
                  type="checkbox"
                  checked={hideMessages}
                  onChange={(e) => {
-                   const newValue = e.target.checked
-                   setHideMessages(newValue)
-                   toggleClass(CSS_CLASSES.HIDE_MESSAGES, newValue)
+                   onChangeHandler(CSS_CLASSES.HIDE_MESSAGES, e.target.checked)
                  }}
           />
           <span className="overlay__switch-slider overlay__switch-slider-round"></span>
@@ -124,9 +131,7 @@ const PlasmoOverlay = () => {
                  type="checkbox"
                  checked={hiddenMode}
                  onChange={(e) => {
-                   const newValue = e.target.checked
-                   setHiddenMode(newValue)
-                   toggleClass(CSS_CLASSES.HIDDEN_MODE, newValue)
+                   onChangeHandler(CSS_CLASSES.HIDDEN_MODE, e.target.checked)
                  }}
           />
           <span className="overlay__switch-slider overlay__switch-slider-round"></span>

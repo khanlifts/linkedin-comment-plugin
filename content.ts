@@ -117,38 +117,6 @@ if (document.readyState === 'loading') {
   })
 }
 
-// Listen for messages from the Content Script UI
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-  console.log('message in content.ts', message)
-  if (message.type === 'TOGGLE_CLASS') {
-    const { className, status } = message
-    
-    // Find iframe for toggle
-    const iframe = document.querySelector('iframe[data-testid="interop-iframe"]') as HTMLIFrameElement
-    
-    // Use helper function for consistent behavior
-    toggleClassHelper(className, status, iframe)
-    
-    sendResponse({ success: true })
-  }
-  // TODO: Check if you have to implement this part in plasmo-overlay.tsx to ensure the state is saved between page loads
-  if (message.type === 'APPLY_STATE') {
-    try {
-      // Find iframe for state application
-      const iframe = document.querySelector('iframe[data-testid="interop-iframe"]') as HTMLIFrameElement
-      
-      // Use the same function as page load
-      await applySavedState(iframe)
-      sendResponse({ success: true })
-    } catch (error) {
-      console.error('❌ Error applying state:', error)
-      sendResponse({ success: false, error: error.message })
-    }
-  }
-  
-  return true // Keep the message channel open for async response
-})
-
 // Add CSS styles for hiding LinkedIn elements
 const style = document.createElement('style')
 style.textContent = `
