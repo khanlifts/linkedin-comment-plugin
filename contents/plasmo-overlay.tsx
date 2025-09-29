@@ -98,9 +98,15 @@ const PlasmoOverlay = () => {
 
   return (
     <div className="overlay">
-      <h2 className="overlay__title">Feed Focus</h2>
+      <h2 className="overlay__title">FeedFocus</h2>
         <div className="overlay__switch-item">
           <label className="overlay__switch">
+            <span className="overlay__switch-label"
+                  style={{
+                    left: hideNotifications ? "12px" : "auto",
+                    right: hideNotifications ? "auto" : "16px"
+                  }}
+            >{hideNotifications ? "AUS" : "AN"}</span>
             <input className="overlay__switch-input"
                    type="checkbox"
                    checked={hideNotifications}
@@ -110,10 +116,15 @@ const PlasmoOverlay = () => {
             />
             <span className="overlay__switch-slider overlay__switch-slider-round"></span>
           </label>
-          <label className="overlay__label">Hide Notifications</label>
         </div>
       <div className="overlay__switch-item">
         <label className="overlay__switch">
+          <span className="overlay__switch-label"
+                style={{
+                  left: hideMessages ? "12px" : "auto",
+                  right: hideMessages ? "auto" : "16px"
+                }}
+          >{hideMessages ? "AUS" : "AN"}</span>
           <input className="overlay__switch-input"
                  type="checkbox"
                  checked={hideMessages}
@@ -123,10 +134,15 @@ const PlasmoOverlay = () => {
           />
           <span className="overlay__switch-slider overlay__switch-slider-round"></span>
         </label>
-        <label className="overlay__label">Hide Messages</label>
       </div>
       <div className="overlay__switch-item">
         <label className="overlay__switch">
+          <span className="overlay__switch-label"
+                style={{
+                  left: hiddenMode ? "12px" : "auto",
+                  right: hiddenMode ? "auto" : "16px"
+                }}
+          >{hiddenMode ? "AUS" : "AN"}</span>
           <input className="overlay__switch-input"
                  type="checkbox"
                  checked={hiddenMode}
@@ -136,7 +152,6 @@ const PlasmoOverlay = () => {
           />
           <span className="overlay__switch-slider overlay__switch-slider-round"></span>
         </label>
-        <label className="overlay__label">Hide Feed</label>
       </div>
     </div>
   )

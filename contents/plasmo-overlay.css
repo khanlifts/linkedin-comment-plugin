@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap');
+
 #plasmo-shadow-container {
   position: fixed !important;
   top: 50%;
@@ -11,24 +13,22 @@
 
 .overlay {
   background: #fff;
-  border-radius: 0 8px 8px 0;
-  min-width: 150px;
-  padding: 20px;
+  border-radius: 0 16px 16px 0;
+  padding: 10px;
   font-family: sans-serif;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .overlay__title {
-  margin: 0 0 14px 0;
-  font-size: 20px;
-  color: #333;
+  font-family: 'Bricolage Grotesque', monospace;
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 10px;
+  color: #3D3C4D;
 }
 
 .overlay__switch-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-  gap: 8px;
+  padding: 6px 0;
 }
 
 .overlay__label {
@@ -40,8 +40,18 @@
 .overlay__switch {
   position: relative;
   display: inline-block;
-  width: 30px;
-  height: 17px;
+  width: 70px;
+  height: 30px;
+}
+
+.overlay__switch-label {
+  position: absolute;
+  left: 12px;
+  top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  z-index: 2;
 }
 
 .overlay__switch-input {
@@ -57,7 +67,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #e8cef4;
+  background-color: #5181E3;
   -webkit-transition: .4s;
   transition: .4s;
 }
@@ -65,27 +75,24 @@
 .overlay__switch-slider:before {
   position: absolute;
   content: "";
-  height: 13px;
-  width: 13px;
+  height: 26px;
+  width: 26px;
   left: 2px;
   bottom: 2px;
   background-color: white;
-  -webkit-transition: .4s;
   transition: .4s;
 }
 
 .overlay__switch-input:checked + .overlay__switch-slider {
-  background-color: #5FAAFD;
+  background-color: #D6A5F3;
 }
 
 .overlay__switch-input:focus + .overlay__switch-slider {
-  box-shadow: 0 0 1px #5FAAFD;
+  box-shadow: 0 0 1px #D6A5F3;
 }
 
 .overlay__switch-input:checked + .overlay__switch-slider:before {
-  -webkit-transform: translateX(13px);
-  -ms-transform: translateX(13px);
-  transform: translateX(13px);
+  transform: translateX(40px);
 }
 
 .overlay__switch-slider-round {
