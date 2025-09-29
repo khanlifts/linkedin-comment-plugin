@@ -2,10 +2,14 @@ import cssText from "data-text:~/contents/plasmo-overlay.css";
 import type { PlasmoCSConfig, PlasmoGetStyle } from "plasmo";
 import { useEffect, useState } from "react";
 import { CSS_CLASSES, STORAGE_KEYS, toggleClassHelper } from "~utils"
+import BellIcon from "react:~/assets/icons/bell.svg"
+import BrowserIcon from "react:~/assets/icons/browser.svg"
+import EnvelopeIcon from "react:~/assets/icons/envelope.svg"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://www.linkedin.com/*"],
-  run_at: "document_start" // Run as early as possible to prevent flash
+  run_at: "document_start", // Run as early as possible to prevent flash
+  css: ["font.css"]
 }
 
 export const getStyle: PlasmoGetStyle = () => {
@@ -114,7 +118,13 @@ const PlasmoOverlay = () => {
                      onChangeHandler(CSS_CLASSES.HIDE_NOTIFICATIONS, e.target.checked)
                    }}
             />
-            <span className="overlay__switch-slider overlay__switch-slider-round"></span>
+            <span className="overlay__switch-slider overlay__switch-slider-round">
+              <span className="overlay__slider-knob">
+                <BellIcon className={
+                  `overlay__slider-icon ${hideNotifications ? "overlay__slider-icon--active" : ""}`}
+                />
+              </span>
+            </span>
           </label>
         </div>
       <div className="overlay__switch-item">
@@ -132,7 +142,13 @@ const PlasmoOverlay = () => {
                    onChangeHandler(CSS_CLASSES.HIDE_MESSAGES, e.target.checked)
                  }}
           />
-          <span className="overlay__switch-slider overlay__switch-slider-round"></span>
+          <span className="overlay__switch-slider overlay__switch-slider-round">
+            <span className="overlay__slider-knob">
+              <EnvelopeIcon className={
+                `overlay__slider-icon ${hideMessages ? "overlay__slider-icon--active" : ""}`}
+              />
+            </span>
+          </span>
         </label>
       </div>
       <div className="overlay__switch-item">
@@ -150,7 +166,13 @@ const PlasmoOverlay = () => {
                    onChangeHandler(CSS_CLASSES.HIDDEN_MODE, e.target.checked)
                  }}
           />
-          <span className="overlay__switch-slider overlay__switch-slider-round"></span>
+          <span className="overlay__switch-slider overlay__switch-slider-round">
+            <span className="overlay__slider-knob">
+              <BrowserIcon className={
+                `overlay__slider-icon ${hiddenMode ? "overlay__slider-icon--active" : ""}`}
+              />
+            </span>
+          </span>
         </label>
       </div>
     </div>
