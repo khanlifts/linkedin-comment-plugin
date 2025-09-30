@@ -12,7 +12,7 @@
 .overlay {
   background: #fff;
   border-radius: 0 16px 16px 0;
-  padding: 10px;
+  padding: 8px;
   font-family: sans-serif;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
@@ -24,6 +24,16 @@
   margin: 2px 0 0 0;
   color: #3D3C4D;
   padding-left: 1px;
+
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: all 0.3s;
+}
+
+.overlay:hover .overlay__title {
+  opacity: 1;
+  width: 100%;
 }
 
 .overlay__label {
@@ -35,14 +45,17 @@
 .overlay__switch {
   position: relative;
   display: inline-block;
+  width: 30px;
+  transition: width 0.3s ease;
+}
+
+.overlay:hover .overlay__switch {
   width: 70px;
-  /*height: 30px;*/
 }
 
 .overlay__slider-icon {
   color: #5181e3;
   pointer-events: none;
-  transition: color 0.4s ease;
 }
 
 .overlay__slider-icon--active {
@@ -56,6 +69,15 @@
   font-size: 12px;
   font-weight: 600;
   color: white;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .1s ease;
+}
+
+.overlay:hover .overlay__switch-label {
+  opacity: 1;
+  transition: opacity .1s ease .2s;
 }
 
 .overlay__switch-input {
