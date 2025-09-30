@@ -15,6 +15,12 @@
   padding: 8px;
   font-family: sans-serif;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 30px;
+  transition: width 0.3s ease;
+}
+
+.overlay:hover {
+  width: 70px;
 }
 
 .overlay__title {
@@ -108,11 +114,15 @@
   height: 26px;
   background-color: white;
   border-radius: 50%;
-  transition: transform 0.4s;
+  transition: transform 0.3s;
 }
 
 .overlay__switch-input:checked + .overlay__switch-slider .overlay__slider-knob {
   transform: translateX(40px);
+}
+
+.overlay:not(:hover) .overlay__switch-input:checked + .overlay__switch-slider .overlay__slider-knob {
+  transform: translateX(0);
 }
 
 .overlay__switch-input:checked + .overlay__switch-slider {
