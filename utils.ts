@@ -44,3 +44,31 @@ export const toggleClassHelper = (className: string, shouldAdd: boolean, iframe?
     removeClass(className, iframe)
   }
 }
+
+export const isAllowedPath = (url: string = window.location.href): boolean => {
+  try {
+    const parsedUrl = new URL(url)
+    const pathname = parsedUrl.pathname
+    return (
+      pathname.startsWith("/feed") ||
+      pathname.startsWith("/messaging") ||
+      pathname.startsWith("/notifications") ||
+      pathname.startsWith("/in/") ||
+      pathname.startsWith("/analytics/") ||
+      pathname.startsWith("/my-items/") ||
+      pathname.startsWith("/search/") ||
+      pathname.startsWith("/company/")
+    )
+  } catch {
+    return false
+  }
+}
+
+export const MESSAGE_TYPES = {
+  URL_PATH_CHANGED: "URL_PATH_CHANGED"
+} as const
+
+export interface OverlayMessage {
+  type: typeof MESSAGE_TYPES.URL_PATH_CHANGED
+  allowed: boolean
+}

@@ -1,25 +1,17 @@
 // Background script to control when the popup is available
 // This script runs in the background and controls the page action
 
+import { isAllowedPath, MESSAGE_TYPES } from "~utils"
+
 // Helper function to update the action state based on URL
 function updateActionState(tabId: number, url: string) {
-  const isLinkedIn = url.includes('linkedin.com')
-  
-  if (isLinkedIn) {
-    // Show the popup icon and enable it
-    chrome.action.enable(tabId)
-    chrome.action.setTitle({
-      tabId,
-      title: 'LinkedIn Comment Plugin'
-    })
-  } else {
-    // Hide the popup icon and disable it
-    chrome.action.disable(tabId)
-    chrome.action.setTitle({
-      tabId,
-      title: 'LinkedIn Comment Plugin (only works on LinkedIn)'
-    })
-  }
+  const allowed = isAllowedPath(url)
+  chrome.tabs.sendMessage(tabId, {
+    type: MESSAGE_TYPES.URL_PATH_CHANGED,
+    allowed
+  }).catch(() => {
+    // Ignoriere Fehler, wenn Content Script noch nicht ready ist
+  })
 }
 
 // Check on extension startup or chrome startup

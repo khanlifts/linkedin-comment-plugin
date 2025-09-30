@@ -1,7 +1,8 @@
 import cssText from "data-text:~/contents/plasmo-overlay.css";
 import type { PlasmoCSConfig, PlasmoGetStyle } from "plasmo";
 import { useEffect, useState } from "react";
-import { CSS_CLASSES, STORAGE_KEYS, toggleClassHelper } from "~utils"
+import { CSS_CLASSES, STORAGE_KEYS, MESSAGE_TYPES, isAllowedPath, toggleClassHelper } from "~utils"
+import type { OverlayMessage } from "~utils"
 import BellIcon from "react:~/assets/icons/bell.svg"
 import BrowserIcon from "react:~/assets/icons/browser.svg"
 import EnvelopeIcon from "react:~/assets/icons/envelope.svg"
@@ -19,6 +20,8 @@ export const getStyle: PlasmoGetStyle = () => {
 }
 
 const PlasmoOverlay = () => {
+  const [shouldRender, setShouldRender] = useState<boolean | null>(null)
+
   const [hiddenMode, setHiddenMode] = useState(false)
   const [hideMessages, setHideMessages] = useState(false)
   const [hideNotifications, setHideNotifications] = useState(false)
@@ -48,7 +51,24 @@ const PlasmoOverlay = () => {
     }
 
     loadState().then();
+
+    setShouldRender(isAllowedPath())
+
+    const handleMessage = (message: OverlayMessage) => {
+      if (message.type === MESSAGE_TYPES.URL_PATH_CHANGED) {
+        setShouldRender(message.allowed)
+        console.log("Overlay render state changed by background script:", message.allowed)
+      }
+    }
+
+    chrome.runtime.onMessage.addListener(handleMessage)
+
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage)
+    }
   }, []);
+
+  if (shouldRender === false) return null
 
   // Function to save state to storage
   const saveStateToStorage = async (className: string, status: boolean) => {
