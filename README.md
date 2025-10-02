@@ -1,8 +1,16 @@
-This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
+# LinkedIn FeedFocus
 
-## Getting Started
+**FeedFocus** is a lightweight browser extension for Chrome, Arc, Brave, Edge, and Safari. It lets you quickly toggle LinkedIn notifications and messages (DMs) on or off — without digging into LinkedIn’s settings every time.
 
-First, run the development server:
+No blocking. No hiding forever. Just quick focus when you need it — and easy access when you don't.
+
+Built with the [Plasmo Framework](https://docs.plasmo.com/).
+
+---
+
+## 🔧 Local Development
+
+### 1. Start the dev server
 
 ```bash
 pnpm dev
@@ -10,15 +18,31 @@ pnpm dev
 npm run dev
 ```
 
-Open your browser and load the appropriate development build. For example, if you are developing for the chrome browser, using manifest v3, use: `build/chrome-mv3-dev`.
+### 2. Load the extension in your browser
 
-You can start editing the popup by modifying `popup.tsx`. It should auto-update as you make changes. To add an options page, simply add a `options.tsx` file to the root of the project, with a react component default exported. Likewise to add a content page, add a `content.ts` file to the root of the project, importing some module and do some logic, then reload the extension on your browser.
+Depending on your target browser, locate the dev build folder (e.g.):
 
-For further guidance, [visit our Documentation](https://docs.plasmo.com/)
+```
+build/chrome-mv3-dev
+```
 
-## Making production build
+Load this folder manually as an unpacked extension:
+- Go to `chrome://extensions`
+- Enable developer mode
+- Click “Load unpacked” and select the build folder
 
-Run the following:
+---
+
+## ⚙️ Project Structure
+
+- `content.ts`: Injects CSS styles into LinkedIn pages to toggle specific elements
+- `background.ts`: Ensures the extension only activates on allowed pages
+- `package.json`: Declares permissions, icons, and entry points
+- `plasmo-overlay.tsx`: Main component with switches
+
+---
+
+## 🚀 Build for Production
 
 ```bash
 pnpm build
@@ -26,8 +50,28 @@ pnpm build
 npm run build
 ```
 
-This should create a production bundle for your extension, ready to be zipped and published to the stores.
+The output will be available in the `build/` folder, ready for zipping and upload.
 
-## Submit to the webstores
+---
 
-The easiest way to deploy your Plasmo extension is to use the built-in [bpp](https://bpp.browser.market) GitHub action. Prior to using this action however, make sure to build your extension and upload the first version to the store to establish the basic credentials. Then, simply follow [this setup instruction](https://docs.plasmo.com/framework/workflows/submit) and you should be on your way for automated submission!
+## 🔒 Permissions & Privacy
+
+FeedFocus only requests access to LinkedIn pages:
+
+```json
+"host_permissions": [
+  "https://www.linkedin.com/*"
+]
+```
+
+- No trackers
+- No data collection
+- No external API calls
+
+---
+
+## 💡 Why FeedFocus?
+
+LinkedIn can be useful — and distracting. FeedFocus helps you keep your flow without missing messages. It’s not about hiding everything, but toggling visibility when you need space to work.
+
+---

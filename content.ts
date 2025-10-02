@@ -11,7 +11,6 @@ const waitForCorrectIframe = (callback: (iframe: HTMLIFrameElement) => void) => 
     
     for (const iframe of allIframes) {
       if (isValidIframe(iframe)) {
-        console.log(`✅ IFRAME FOUND after ${checkCount} checks - Plugin will work!`)
         callback(iframe)
         return
       }
@@ -19,8 +18,6 @@ const waitForCorrectIframe = (callback: (iframe: HTMLIFrameElement) => void) => 
     
     if (checkCount < maxChecks) {
       requestAnimationFrame(checkIframes)
-    } else {
-      console.log('❌ IFRAME TIMEOUT - Plugin will NOT work! Found iframes:', Array.from(allIframes).map(f => ({testid: f.getAttribute('data-testid'), src: f.src})))
     }
   }
   
@@ -53,10 +50,7 @@ const injectStylesIntoIframe = (iframe: HTMLIFrameElement) => {
       iframeStyle.setAttribute('data-myext', 'true')
       iframeStyle.textContent = style.textContent
       iframe.contentDocument.head.appendChild(iframeStyle)
-      console.log('✅ CSS INJECTED - Plugin styles active!')
     }
-  } else {
-    console.log('❌ CSS INJECTION FAILED - iframe not accessible!')
   }
 }
 
@@ -95,12 +89,6 @@ const applySavedState = async (iframe?: HTMLIFrameElement) => {
     toggleClassHelper(CSS_CLASSES.HIDDEN_MODE, result[STORAGE_KEYS.HIDDEN_MODE] || false, iframe)
     toggleClassHelper(CSS_CLASSES.HIDE_MESSAGES, result[STORAGE_KEYS.HIDE_MESSAGES] || false, iframe)
     toggleClassHelper(CSS_CLASSES.HIDE_NOTIFICATIONS, result[STORAGE_KEYS.HIDE_NOTIFICATIONS] || false, iframe)
-    
-    // Only log if something is actually enabled
-    const activeFeatures = Object.entries(result).filter(([key, value]) => value).map(([key]) => key)
-    if (activeFeatures.length > 0) {
-      console.log('🎉 PLUGIN ACTIVE - Features enabled:', activeFeatures)
-    }
   } catch (error) {
     console.error('❌ Error applying saved state:', error)
   }

@@ -23,7 +23,7 @@ chrome.runtime.onStartup.addListener(() => {
     })
   })
 
-// Listen for tab updates to show/hide the popup
+// Listen for tab changes to trigger URL-based logic
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url) {
     updateActionState(tabId, tab.url)

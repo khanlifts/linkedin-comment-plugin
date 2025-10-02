@@ -40,11 +40,6 @@ const PlasmoOverlay = () => {
         setHiddenMode(result[STORAGE_KEYS.HIDDEN_MODE] ?? false)
         setHideMessages(result[STORAGE_KEYS.HIDE_MESSAGES] ?? false)
         setHideNotifications(result[STORAGE_KEYS.HIDE_NOTIFICATIONS] ?? false)
-
-        console.log('State loaded from storage:', result)
-
-        // Note: State is automatically applied when LinkedIn pages load
-        // No need to manually send APPLY_STATE message
       } catch (error) {
         console.error('Error loading state:', error)
       }
@@ -57,7 +52,6 @@ const PlasmoOverlay = () => {
     const handleMessage = (message: OverlayMessage) => {
       if (message.type === MESSAGE_TYPES.URL_PATH_CHANGED) {
         setShouldRender(message.allowed)
-        console.log("Overlay render state changed by background script:", message.allowed)
       }
     }
 
@@ -80,8 +74,6 @@ const PlasmoOverlay = () => {
       }
 
       await chrome.storage.local.set({[classToStorageKeyMap[className]]: status })
-
-      console.log('State saved to storage')
     } catch (error) {
       console.error('Error saving state:', error)
     }
