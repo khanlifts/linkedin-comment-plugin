@@ -1,8 +1,8 @@
 {
   "name": "linkedin-focus-plugin",
-  "displayName": "FeedFocus",
+  "displayName": "LinkedIn FeedFocus",
   "version": "1.0.3",
-  "description": "Minimize distractions on your LinkedIn feed. Maximize your output.",
+  "description": "Toggle your Notifications and DMs with one click.",
   "author": "Cyril Khan",
   "scripts": {
     "dev": "plasmo dev",
