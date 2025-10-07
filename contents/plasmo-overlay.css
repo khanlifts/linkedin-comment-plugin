@@ -1,8 +1,5 @@
 #plasmo-shadow-container {
-  position: fixed !important;
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
+
 }
 
 #plasmo-overlay-0 {
@@ -17,6 +14,8 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 30px;
   transition: width 0.3s ease;
+  cursor: pointer;
+  user-select: none;
 }
 
 .overlay:hover {

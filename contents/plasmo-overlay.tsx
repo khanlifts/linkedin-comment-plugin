@@ -1,11 +1,11 @@
 import cssText from "data-text:~/contents/plasmo-overlay.css";
 import type { PlasmoCSConfig, PlasmoGetStyle } from "plasmo";
-import { useEffect, useState } from "react";
-import { CSS_CLASSES, STORAGE_KEYS, MESSAGE_TYPES, isAllowedPath, toggleClassHelper } from "~utils"
-import type { OverlayMessage } from "~utils"
-import BellIcon from "react:~/assets/icons/bell.svg"
-import BrowserIcon from "react:~/assets/icons/browser.svg"
-import EnvelopeIcon from "react:~/assets/icons/envelope.svg"
+import { useEffect, useRef, useState } from "react"
+import BellIcon from "react:~/assets/icons/bell.svg";
+import BrowserIcon from "react:~/assets/icons/browser.svg";
+import EnvelopeIcon from "react:~/assets/icons/envelope.svg";
+import { CSS_CLASSES, isAllowedPath, MESSAGE_TYPES, STORAGE_KEYS, toggleClassHelper } from "~utils";
+import type { OverlayMessage } from "~utils";
 
 export const config: PlasmoCSConfig = {
   matches: ["https://www.linkedin.com/*"],
@@ -22,9 +22,46 @@ export const getStyle: PlasmoGetStyle = () => {
 const PlasmoOverlay = () => {
   const [shouldRender, setShouldRender] = useState<boolean | null>(null)
 
+  const overlayRef = useRef<HTMLDivElement>(null)
+  const [posY, setPosY] = useState(50) // Prozentuale Position
+
   const [hiddenMode, setHiddenMode] = useState(false)
   const [hideMessages, setHideMessages] = useState(false)
   const [hideNotifications, setHideNotifications] = useState(false)
+
+  useEffect(() => {
+    const overlayEl = overlayRef.current
+    if (!overlayEl) return
+
+    let isDragging = false
+    let startY = 0
+
+    const handleMouseDown = (e: MouseEvent) => {
+      isDragging = true
+      startY = e.clientY
+      document.addEventListener("mousemove", handleMouseMove)
+      document.addEventListener("mouseup", handleMouseUp)
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return
+      const deltaY = e.clientY - startY
+      const newTop = Math.min(Math.max(0, posY + (deltaY / window.innerHeight) * 100), 100)
+      setPosY(newTop)
+    }
+
+    const handleMouseUp = () => {
+      isDragging = false
+      document.removeEventListener("mousemove", handleMouseMove)
+      document.removeEventListener("mouseup", handleMouseUp)
+    }
+
+    overlayEl.addEventListener("mousedown", handleMouseDown)
+
+    return () => {
+      overlayEl.removeEventListener("mousedown", handleMouseDown)
+    }
+  }, [posY])
 
   useEffect(() => {
     const loadState = async () => {
@@ -113,7 +150,14 @@ const PlasmoOverlay = () => {
   }
 
   return (
-    <div className="overlay">
+    <div className="overlay"
+         ref={overlayRef}
+         style={{
+           top: `${posY}%`,
+           left: 0,
+           position: "fixed",
+           transform: "translateY(-50%)"
+         }}>
       <h2 className="overlay__title">FeedFocus</h2>
         <div className="overlay__switch-item">
           <label className="overlay__switch">
