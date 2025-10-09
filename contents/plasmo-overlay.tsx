@@ -30,6 +30,8 @@ const PlasmoOverlay = () => {
   const [hideNotifications, setHideNotifications] = useState(false)
 
   useEffect(() => {
+    if (shouldRender !== true) return;
+
     const overlayEl = overlayRef.current
     if (!overlayEl) return
 
@@ -61,7 +63,7 @@ const PlasmoOverlay = () => {
     return () => {
       overlayEl.removeEventListener("mousedown", handleMouseDown)
     }
-  }, [posY])
+  }, [shouldRender])
 
   useEffect(() => {
     const loadState = async () => {
