@@ -54,6 +54,33 @@ const injectStylesIntoIframe = (iframe: HTMLIFrameElement) => {
   }
 }
 
+const getLinkedInMemberId = (): { fullName: string; urn: string } => {
+  const codeEls = [...document.querySelectorAll("code")];
+  const windowUrl = window.location.href;
+  const publicIdentifier = windowUrl.split("/")[4];
+
+  for (const el of codeEls) {
+    try {
+      const text = el.textContent;
+      if (!text) continue;
+      const jsonObj = JSON.parse(text);
+      const included = jsonObj?.included;
+      if (!Array.isArray(included)) continue;
+      for (const item of included) {
+        if (item.publicIdentifier === publicIdentifier) {
+          const fullName = `${item.firstName ?? ''} ${item.lastName ?? ''}`.trim();
+          const urn = item.entityUrn?.split(":").pop() || '';
+
+          return { fullName, urn };
+        }
+      }
+    } catch (err) {
+      console.error('Fehler beim Parsen eines <code>-Elements:', err);
+    }
+  }
+  return null;
+}
+
 // Elegant function to wait for body and apply saved state
 async function waitForBodyAndApplyState() {
   if (document.body) {
@@ -64,7 +91,9 @@ async function waitForBodyAndApplyState() {
       // Iframe found, apply state
       applySavedState(iframe)
     })
-    
+
+    getLinkedInMemberId()
+
     await applySavedState()
   } else {
     requestAnimationFrame(waitForBodyAndApplyState)
