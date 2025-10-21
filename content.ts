@@ -54,30 +54,49 @@ const injectStylesIntoIframe = (iframe: HTMLIFrameElement) => {
   }
 }
 
-const getLinkedInMemberId = (): { fullName: string; urn: string } => {
-  const codeEls = [...document.querySelectorAll("code")];
-  const windowUrl = window.location.href;
-  const publicIdentifier = windowUrl.split("/")[4];
+const extractPublicIdentifierFromUrl = (): string => {
+  return window.location.href.split("/")[4]
+}
+
+const getParsedJsonFromCodeTags = (): any[] => {
+  const codeEls = [...document.querySelectorAll("code")]
+  const parsedObjects: any[] = []
 
   for (const el of codeEls) {
     try {
-      const text = el.textContent;
-      if (!text) continue;
-      const jsonObj = JSON.parse(text);
-      const included = jsonObj?.included;
-      if (!Array.isArray(included)) continue;
-      for (const item of included) {
-        if (item.publicIdentifier === publicIdentifier) {
-          const fullName = `${item.firstName ?? ''} ${item.lastName ?? ''}`.trim();
-          const urn = item.entityUrn?.split(":").pop() || '';
-
-          return { fullName, urn };
-        }
-      }
+      const text = el.textContent
+      if (!text) continue
+      const json = JSON.parse(text)
+      parsedObjects.push(json)
     } catch (err) {
-      console.error('Fehler beim Parsen eines <code>-Elements:', err);
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("Fehler beim Parsen eines <code>-Elements:", err)
+      }
     }
   }
+
+  return parsedObjects
+}
+
+const findProfileMatch = (included: any[], publicIdentifier: string): { fullName: string; urn: string } | null => {
+  const match = included.find((item) => item.publicIdentifier === publicIdentifier)
+  if (!match) return null
+
+  const fullName = `${match.firstName ?? ''} ${match.lastName ?? ''}`.trim()
+  const urn = match.entityUrn?.split(":").pop() || ''
+  return { fullName, urn }
+}
+
+const getLinkedInMemberFullNameAndUrn = (): { fullName: string; urn: string } | null => {
+  const publicIdentifier = extractPublicIdentifierFromUrl()
+  const parsedJsons = getParsedJsonFromCodeTags()
+
+  for (const json of parsedJsons) {
+    if (!Array.isArray(json?.included)) continue
+    const match = findProfileMatch(json.included, publicIdentifier)
+    if (match !== null) return match
+  }
+
   return null;
 }
 
@@ -92,7 +111,7 @@ async function waitForBodyAndApplyState() {
       applySavedState(iframe)
     })
 
-    getLinkedInMemberId()
+    const fullNameAndResult = getLinkedInMemberFullNameAndUrn()
 
     await applySavedState()
   } else {
@@ -119,7 +138,9 @@ const applySavedState = async (iframe?: HTMLIFrameElement) => {
     toggleClassHelper(CSS_CLASSES.HIDE_MESSAGES, result[STORAGE_KEYS.HIDE_MESSAGES] || false, iframe)
     toggleClassHelper(CSS_CLASSES.HIDE_NOTIFICATIONS, result[STORAGE_KEYS.HIDE_NOTIFICATIONS] || false, iframe)
   } catch (error) {
-    console.error('❌ Error applying saved state:', error)
+    if (process.env.NODE_ENV !== "production") {
+      console.error('Error applying saved state:', error)
+    }
   }
 }
 
