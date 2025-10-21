@@ -112,12 +112,37 @@ async function waitForBodyAndApplyState() {
     })
 
     const fullNameAndResult = getLinkedInMemberFullNameAndUrn()
+    console.log('fullNameAndResult:', fullNameAndResult)
 
     await applySavedState()
   } else {
     requestAnimationFrame(waitForBodyAndApplyState)
   }
 }
+
+let lastUrl = location.href
+
+const observeDomChanges = () => {
+  const observer = new MutationObserver(() => {
+    const currentUrl = location.href
+
+    if (currentUrl !== lastUrl) {
+      lastUrl = currentUrl
+      console.log("🔄 URL changed:", currentUrl)
+      waitForBodyAndApplyState()
+    }
+
+    const result = getLinkedInMemberFullNameAndUrn()
+    if (result) {
+      console.log("✅ Profil gefunden via DOM Mutation:", result)
+      // Optional: speichere result oder löse Promise, falls du darauf wartest
+    }
+  })
+
+  observer.observe(document.body, { childList: true, subtree: true })
+}
+
+observeDomChanges()
 
 // Function to apply saved state from storage
 const applySavedState = async (iframe?: HTMLIFrameElement) => {
