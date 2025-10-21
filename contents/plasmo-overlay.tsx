@@ -80,7 +80,9 @@ const PlasmoOverlay = () => {
         setHideMessages(result[STORAGE_KEYS.HIDE_MESSAGES] ?? false)
         setHideNotifications(result[STORAGE_KEYS.HIDE_NOTIFICATIONS] ?? false)
       } catch (error) {
-        console.error('Error loading state:', error)
+        if (process.env.NODE_ENV !== "production") {
+          console.error('Error loading state:', error)
+        }
       }
     }
 
@@ -114,7 +116,9 @@ const PlasmoOverlay = () => {
 
       await chrome.storage.local.set({[classToStorageKeyMap[className]]: status })
     } catch (error) {
-      console.error('Error saving state:', error)
+      if (process.env.NODE_ENV !== "production") {
+        console.error('Error saving state:', error)
+      }
     }
   }
 
@@ -137,7 +141,9 @@ const PlasmoOverlay = () => {
 
       await saveStateToStorage(className, status)
     } catch (error) {
-      console.error('Error sending message to content script:', error)
+      if (process.env.NODE_ENV !== "production") {
+        console.error('Error sending message to content script:', error)
+      }
       // Reset the switch state if message failed
       const toggleMap: Record<string, boolean> = {
         [CSS_CLASSES.HIDDEN_MODE]: hiddenMode,
