@@ -72,3 +72,21 @@ export interface OverlayMessage {
   type: typeof MESSAGE_TYPES.URL_PATH_CHANGED
   allowed: boolean
 }
+
+export const isJsonString = (str: string): boolean => {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export const isProfileUrl = (url: string): boolean => {
+  try {
+    const parsedUrl = new URL(url)
+    return parsedUrl.pathname.includes('/in/')
+  } catch {
+    return false
+  }
+}

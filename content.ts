@@ -1,4 +1,4 @@
-import { CSS_CLASSES, STORAGE_KEYS, toggleClassHelper } from "~utils"
+import { CSS_CLASSES, isJsonString, isProfileUrl, STORAGE_KEYS, toggleClassHelper } from "~utils";
 
 // Helper function to wait for the correct iframe using polling
 const waitForCorrectIframe = (callback: (iframe: HTMLIFrameElement) => void) => {
@@ -65,7 +65,7 @@ const getParsedJsonFromCodeTags = (): any[] => {
   for (const el of codeEls) {
     try {
       const text = el.textContent
-      if (!text) continue
+      if (!text || !isJsonString(text)) continue
       const json = JSON.parse(text)
       parsedObjects.push(json)
     } catch (err) {
@@ -123,6 +123,9 @@ async function waitForBodyAndApplyState() {
 let lastUrl = location.href
 
 const observeDomChanges = () => {
+  let isThrottled = false
+  let hasPendingCheck = false
+
   const observer = new MutationObserver(() => {
     const currentUrl = location.href
 
@@ -130,12 +133,44 @@ const observeDomChanges = () => {
       lastUrl = currentUrl
       console.log("🔄 URL changed:", currentUrl)
       waitForBodyAndApplyState()
-    }
 
-    const result = getLinkedInMemberFullNameAndUrn()
-    if (result) {
-      console.log("✅ Profil gefunden via DOM Mutation:", result)
-      // Optional: speichere result oder löse Promise, falls du darauf wartest
+      if (isProfileUrl(currentUrl)) {
+        const result = getLinkedInMemberFullNameAndUrn()
+        console.log('result 1', result)
+        if (result && process.env.NODE_ENV !== "production") {
+          console.log("✅ Profil gefunden via DOM Mutation:", result)
+          // Optional: speichere result oder löse Promise, falls du darauf wartest
+        }
+      }
+    } else if (isProfileUrl(currentUrl)) {
+
+      if (isThrottled) {
+        hasPendingCheck = true
+      } else {
+        isThrottled = true
+        hasPendingCheck = false
+
+        const result = getLinkedInMemberFullNameAndUrn()
+        console.log('result 2', result)
+
+        if (result && process.env.NODE_ENV !== "production") {
+          console.log("✅ Profil gefunden via DOM Mutation:", result)
+        }
+
+        setTimeout(() => {
+          isThrottled = false
+
+          if (hasPendingCheck && isProfileUrl(location.href)) {
+            hasPendingCheck = false
+            const result = getLinkedInMemberFullNameAndUrn()
+            console.log('result 3', result)
+
+            if (result && process.env.NODE_ENV !== "production") {
+              console.log("✅ Profil gefunden via DOM Mutation (nachgeholt):", result)
+            }
+          }
+        }, 1000)
+      }
     }
   })
 
