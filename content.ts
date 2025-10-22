@@ -60,14 +60,16 @@ const extractPublicIdentifierFromUrl = (): string => {
 
 const getParsedJsonFromCodeTags = (): any[] => {
   const codeEls = [...document.querySelectorAll("code")]
-  const parsedObjects: any[] = []
+  const jsons: any[] = []
 
   for (const el of codeEls) {
+    const text = el.textContent?.trim();
+    if (!text || !isJsonString(text)) continue
     try {
-      const text = el.textContent
-      if (!text || !isJsonString(text)) continue
-      const json = JSON.parse(text)
-      parsedObjects.push(json)
+      const parsedJson = JSON.parse(text)
+      if (parsedJson && typeof parsedJson === "object") {
+        jsons.push(parsedJson)
+      }
     } catch (err) {
       if (process.env.NODE_ENV !== "production") {
         console.warn("Fehler beim Parsen eines <code>-Elements:", err)
@@ -75,16 +77,36 @@ const getParsedJsonFromCodeTags = (): any[] => {
     }
   }
 
-  return parsedObjects
+  return jsons
 }
 
-const findProfileMatch = (included: any[], publicIdentifier: string): { fullName: string; urn: string } | null => {
-  const match = included.find((item) => item.publicIdentifier === publicIdentifier)
-  if (!match) return null
 
-  const fullName = `${match.firstName ?? ''} ${match.lastName ?? ''}`.trim()
-  const urn = match.entityUrn?.split(":").pop() || ''
-  return { fullName, urn }
+function findProfileMatch(included: any[], publicIdentifier: string) {
+  for (const item of included) {
+    if (
+      typeof item !== "object" ||
+      typeof item.entityUrn !== "string" ||
+      !item.entityUrn.includes("fsd_profile")
+    ) {
+      continue;
+    }
+
+    const decodedIdentifier = decodeURIComponent(publicIdentifier)
+
+    if (item.publicIdentifier === decodedIdentifier) {
+      const urn = item.entityUrn.split(":").pop() ?? null;
+      const firstName = item.firstName ?? "";
+      const lastName = item.lastName ?? "";
+      const fullName = `${firstName} ${lastName}`.trim();
+
+      return {
+        urn,
+        fullName,
+      };
+    }
+  }
+
+  return null;
 }
 
 const getLinkedInMemberFullNameAndUrn = (): { fullName: string; urn: string } | null => {
