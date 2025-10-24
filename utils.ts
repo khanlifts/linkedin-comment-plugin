@@ -12,6 +12,11 @@ export const STORAGE_KEYS = {
   HIDE_NOTIFICATIONS: 'hideNotifications'
 } as const
 
+interface ProfileMatch {
+  urn: string | null;
+  fullName: string;
+}
+
 // Helper functions for CSS class management
 export const addClass = (className: string, iframe?: HTMLIFrameElement) => {
   // Haupt-Document
@@ -73,7 +78,7 @@ export interface OverlayMessage {
   allowed: boolean
 }
 
-export const isJsonString = (str: string): boolean => {
+const isJsonString = (str: string): boolean => {
   try {
     JSON.parse(str);
     return true;
@@ -89,4 +94,71 @@ export const isProfileUrl = (url: string): boolean => {
   } catch {
     return false
   }
+}
+
+const extractPublicIdentifierFromUrl = (): string => {
+  return window.location.href.split("/")[4]
+}
+
+const getParsedJsonFromCodeTags = (): any[] => {
+  const codeEls = [...document.querySelectorAll("code")]
+  const jsons: any[] = []
+
+  for (const el of codeEls) {
+    const text = el.textContent?.trim();
+    if (!text || !isJsonString(text)) continue
+    try {
+      const parsedJson = JSON.parse(text)
+      if (parsedJson && typeof parsedJson === "object") {
+        jsons.push(parsedJson)
+      }
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("Fehler beim Parsen eines <code>-Elements:", err)
+      }
+    }
+  }
+
+  return jsons
+}
+
+const findProfileMatch = (includedArray: any[], publicIdentifier: string): ProfileMatch | null => {
+  for (const item of includedArray) {
+    if (
+      typeof item !== "object" ||
+      typeof item.entityUrn !== "string" ||
+      !item.entityUrn.includes("fsd_profile")
+    ) {
+      continue;
+    }
+
+    const decodedIdentifier = decodeURIComponent(publicIdentifier)
+
+    if (item.publicIdentifier === decodedIdentifier) {
+      const urn = item.entityUrn.split(":").pop() ?? null;
+      const firstName = item.firstName ?? "";
+      const lastName = item.lastName ?? "";
+      const fullName = `${firstName} ${lastName}`.trim();
+
+      return {
+        urn,
+        fullName,
+      };
+    }
+  }
+
+  return null;
+}
+
+export const getLinkedInMemberFullNameAndUrn = (): ProfileMatch | null => {
+  const publicIdentifier = extractPublicIdentifierFromUrl()
+  const parsedJsons = getParsedJsonFromCodeTags()
+
+  for (const json of parsedJsons) {
+    if (!Array.isArray(json?.included)) continue
+    const match = findProfileMatch(json.included, publicIdentifier)
+    if (match !== null) return match
+  }
+
+  return null;
 }

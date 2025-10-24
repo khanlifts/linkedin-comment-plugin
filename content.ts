@@ -1,4 +1,4 @@
-import { CSS_CLASSES, isJsonString, isProfileUrl, STORAGE_KEYS, toggleClassHelper } from "~utils";
+import { CSS_CLASSES, getLinkedInMemberFullNameAndUrn, isProfileUrl, STORAGE_KEYS, toggleClassHelper } from "~utils";
 
 // Helper function to wait for the correct iframe using polling
 const waitForCorrectIframe = (callback: (iframe: HTMLIFrameElement) => void) => {
@@ -52,74 +52,6 @@ const injectStylesIntoIframe = (iframe: HTMLIFrameElement) => {
       iframe.contentDocument.head.appendChild(iframeStyle)
     }
   }
-}
-
-const extractPublicIdentifierFromUrl = (): string => {
-  return window.location.href.split("/")[4]
-}
-
-const getParsedJsonFromCodeTags = (): any[] => {
-  const codeEls = [...document.querySelectorAll("code")]
-  const jsons: any[] = []
-
-  for (const el of codeEls) {
-    const text = el.textContent?.trim();
-    if (!text || !isJsonString(text)) continue
-    try {
-      const parsedJson = JSON.parse(text)
-      if (parsedJson && typeof parsedJson === "object") {
-        jsons.push(parsedJson)
-      }
-    } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("Fehler beim Parsen eines <code>-Elements:", err)
-      }
-    }
-  }
-
-  return jsons
-}
-
-
-function findProfileMatch(included: any[], publicIdentifier: string) {
-  for (const item of included) {
-    if (
-      typeof item !== "object" ||
-      typeof item.entityUrn !== "string" ||
-      !item.entityUrn.includes("fsd_profile")
-    ) {
-      continue;
-    }
-
-    const decodedIdentifier = decodeURIComponent(publicIdentifier)
-
-    if (item.publicIdentifier === decodedIdentifier) {
-      const urn = item.entityUrn.split(":").pop() ?? null;
-      const firstName = item.firstName ?? "";
-      const lastName = item.lastName ?? "";
-      const fullName = `${firstName} ${lastName}`.trim();
-
-      return {
-        urn,
-        fullName,
-      };
-    }
-  }
-
-  return null;
-}
-
-const getLinkedInMemberFullNameAndUrn = (): { fullName: string; urn: string } | null => {
-  const publicIdentifier = extractPublicIdentifierFromUrl()
-  const parsedJsons = getParsedJsonFromCodeTags()
-
-  for (const json of parsedJsons) {
-    if (!Array.isArray(json?.included)) continue
-    const match = findProfileMatch(json.included, publicIdentifier)
-    if (match !== null) return match
-  }
-
-  return null;
 }
 
 // Elegant function to wait for body and apply saved state
