@@ -65,9 +65,6 @@ async function waitForBodyAndApplyState() {
       applySavedState(iframe)
     })
 
-    const fullNameAndResult = getLinkedInMemberFullNameAndUrn()
-    console.log('fullNameAndResult:', fullNameAndResult)
-
     await applySavedState()
   } else {
     requestAnimationFrame(waitForBodyAndApplyState)
@@ -82,48 +79,31 @@ const observeDomChanges = () => {
 
   const observer = new MutationObserver(() => {
     const currentUrl = location.href
-
-    if (currentUrl !== lastUrl) {
-      lastUrl = currentUrl
-      console.log("🔄 URL changed:", currentUrl)
-      waitForBodyAndApplyState()
-
-      if (isProfileUrl(currentUrl)) {
+    if (isProfileUrl(currentUrl)) {
+      if (currentUrl !== lastUrl) {
+        lastUrl = currentUrl
         const result = getLinkedInMemberFullNameAndUrn()
-        console.log('result 1', result)
-        if (result && process.env.NODE_ENV !== "production") {
-          console.log("✅ Profil gefunden via DOM Mutation:", result)
-          // Optional: speichere result oder löse Promise, falls du darauf wartest
-        }
-      }
-    } else if (isProfileUrl(currentUrl)) {
-
-      if (isThrottled) {
-        hasPendingCheck = true
+        console.log("result on URL changed", result)
       } else {
-        isThrottled = true
-        hasPendingCheck = false
+        if (isThrottled) {
+          hasPendingCheck = true
+        } else {
+          isThrottled = true
+          hasPendingCheck = false
 
-        const result = getLinkedInMemberFullNameAndUrn()
-        console.log('result 2', result)
+          const result = getLinkedInMemberFullNameAndUrn()
+          console.log("result 2", result)
 
-        if (result && process.env.NODE_ENV !== "production") {
-          console.log("✅ Profil gefunden via DOM Mutation:", result)
-        }
+          setTimeout(() => {
+            isThrottled = false
 
-        setTimeout(() => {
-          isThrottled = false
-
-          if (hasPendingCheck && isProfileUrl(location.href)) {
-            hasPendingCheck = false
-            const result = getLinkedInMemberFullNameAndUrn()
-            console.log('result 3', result)
-
-            if (result && process.env.NODE_ENV !== "production") {
-              console.log("✅ Profil gefunden via DOM Mutation (nachgeholt):", result)
+            if (hasPendingCheck) {
+              hasPendingCheck = false
+              const result = getLinkedInMemberFullNameAndUrn()
+              console.log("result 3", result)
             }
-          }
-        }, 1000)
+          }, 1000)
+        }
       }
     }
   })
