@@ -1,9 +1,10 @@
-import cssText from "data-text:~/contents/plasmo-overlay.css";
+import scssText from "data-text:~/contents/plasmo-overlay.scss";
 import type { PlasmoCSConfig, PlasmoGetStyle } from "plasmo";
 import { useEffect, useRef, useState } from "react"
 import BellIcon from "react:~/assets/icons/bell.svg";
 import BrowserIcon from "react:~/assets/icons/browser.svg";
 import EnvelopeIcon from "react:~/assets/icons/envelope.svg";
+import CloseIcon from "react:~/assets/icons/close.svg";
 import { CSS_CLASSES, isAllowedPath, MESSAGE_TYPES, STORAGE_KEYS, toggleClassHelper } from "~utils";
 import type { OverlayMessage } from "~utils";
 import FeedBuilder from "~contents/feed-builder"
@@ -16,7 +17,7 @@ export const config: PlasmoCSConfig = {
 
 export const getStyle: PlasmoGetStyle = () => {
   const style = document.createElement("style")
-  style.textContent = cssText
+  style.textContent = scssText
   return style
 }
 
@@ -289,6 +290,7 @@ const PlasmoOverlay = () => {
               onClose={onCloseDialog}
               style={{ display: showBuilder ? "initial" : "none" }}
       >
+        <CloseIcon className="overlay__dialog-close" onClick={onCloseDialog} />
         <FeedBuilder />
       </dialog>
     </div>
