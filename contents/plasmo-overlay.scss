@@ -1,3 +1,5 @@
+@import "../components/feed-builder";
+
 #plasmo-shadow-container {
 
 }
@@ -21,19 +23,22 @@
   }
 }
 
-.overlay__title {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 600;
-  font-size: 13px;
-  margin: 2px 0 0 0;
-  color: #3D3C4D;
-  padding-left: 1px;
-  user-select: none;
+.overlay {
 
-  width: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: all 0.3s;
+  &__title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    margin: 2px 0 0 0;
+    color: #3D3C4D;
+    padding-left: 1px;
+    user-select: none;
+
+    width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.3s;
+  }
 }
 
 .overlay:hover .overlay__title {
@@ -154,6 +159,7 @@
   font-size: 16px;
   cursor: pointer;
   border-radius: 4px;
+  color: gray;
 
   &:hover {
     background-color: #e5e5e5;

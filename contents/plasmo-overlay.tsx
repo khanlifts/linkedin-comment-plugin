@@ -7,7 +7,7 @@ import EnvelopeIcon from "react:~/assets/icons/envelope.svg";
 import CloseIcon from "react:~/assets/icons/close.svg";
 import { CSS_CLASSES, isAllowedPath, MESSAGE_TYPES, STORAGE_KEYS, toggleClassHelper } from "~utils";
 import type { OverlayMessage } from "~utils";
-import FeedBuilder from "~contents/feed-builder"
+import FeedBuilder from "~components/feed-builder"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://www.linkedin.com/*"],
