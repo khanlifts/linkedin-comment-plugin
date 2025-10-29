@@ -1,4 +1,6 @@
-@import "components/feed-builder";
+@use "components/feed-builder" as *;
+@use "components/list-card" as *;
+@use "components/list-card-list" as *;
 
 #plasmo-shadow-container {
 
@@ -150,6 +152,10 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 4px;
   padding: 20px;
+
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
 }
 
 .overlay__dialog-close {
@@ -164,7 +170,4 @@
   &:hover {
     background-color: #e5e5e5;
   }
-}
-
-.feed-builder {
 }

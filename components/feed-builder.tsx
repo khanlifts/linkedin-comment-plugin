@@ -1,4 +1,5 @@
 import { useState } from "react"
+import ListCard from "./list-card"
 
 const FeedBuilder = () => {
   const [isCreating, setIsCreating] = useState(false)
@@ -54,6 +55,9 @@ const FeedBuilder = () => {
             </div>
           </div>
         )}
+      </div>
+      <div className="feed-builder__list">
+        <ListCard/>
       </div>
     </div>
   )
