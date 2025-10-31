@@ -1,5 +1,6 @@
 import { useState } from "react"
 import ListCard from "./list-card"
+import ListSelector from "./list-selector"
 
 const FeedBuilder = () => {
   const [isCreating, setIsCreating] = useState(false)
@@ -19,7 +20,13 @@ const FeedBuilder = () => {
   return (
     <div className="feed-builder">
       <div className="feed-builder__header">FeedBuilder</div>
-      <div className="feed-builder__body">
+      <div className="feed-builder__add-to-list-section">
+        <button className="feed-builder__create-lists-button">
+          + Add to list
+        </button>
+        <ListSelector/>
+      </div>
+      <div className="feed-builder__create-section">
         {!isCreating ? (
           <button
             className="feed-builder__create-lists-button"
