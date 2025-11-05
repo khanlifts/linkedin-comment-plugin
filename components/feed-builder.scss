@@ -37,6 +37,10 @@ $input-field-border-color: #ccc;
     padding: 10px 0;
   }
 
+  &__create-section {
+    margin-bottom: 12px;
+  }
+
   &__create-lists-button {
     @include button();
     width: 348px;

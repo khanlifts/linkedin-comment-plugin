@@ -1,6 +1,7 @@
-import { useState } from "react"
-import ListCard from "./list-card"
-import ListSelector from "./list-selector"
+import { useEffect, useState } from "react"
+import ListCard from "./list-card";
+import ListSelector from "./list-selector";
+import { supabase } from "~core/supabase"
 
 const FeedBuilder = () => {
   const [isCreating, setIsCreating] = useState(false)
@@ -16,6 +17,24 @@ const FeedBuilder = () => {
     setListName("")
     setIsCreating(false)
   }
+
+  useEffect(() => {
+    async function supaBaseInit() {
+      console.log('supabase init')
+      const { data, error } = await supabase
+        .from('feed-builder')
+        .insert({
+          name: 'Test Name',
+          urn: 'Test URN'
+        })
+
+      console.log('data', data)
+      console.log('error:', error)
+    }
+
+    supaBaseInit()
+
+  }, [])
 
   return (
     <div className="feed-builder">

@@ -10,6 +10,9 @@
     "package": "plasmo package"
   },
   "dependencies": {
+    "@plasmohq/messaging": "^0.7.2",
+    "@plasmohq/storage": "^1.15.0",
+    "@supabase/supabase-js": "^2.79.0",
     "plasmo": "0.90.5",
     "react": "18.2.0",
     "react-dom": "18.2.0"
@@ -30,6 +33,20 @@
     ],
     "background": {
       "service_worker": "background.js"
+    },
+    "key": "$CRX_KEY"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "options.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "extension_ids": [
+        "$CRX_ID"
+      ]
     }
-  }
+  ]
 }
