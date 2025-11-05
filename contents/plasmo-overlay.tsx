@@ -1,11 +1,13 @@
-import cssText from "data-text:~/contents/plasmo-overlay.css";
+import scssText from "data-text:~/contents/plasmo-overlay.scss";
 import type { PlasmoCSConfig, PlasmoGetStyle } from "plasmo";
 import { useEffect, useRef, useState } from "react"
 import BellIcon from "react:~/assets/icons/bell.svg";
 import BrowserIcon from "react:~/assets/icons/browser.svg";
 import EnvelopeIcon from "react:~/assets/icons/envelope.svg";
+import CloseIcon from "react:~/assets/icons/close.svg";
 import { CSS_CLASSES, isAllowedPath, MESSAGE_TYPES, STORAGE_KEYS, toggleClassHelper } from "~utils";
 import type { OverlayMessage } from "~utils";
+import FeedBuilder from "~components/feed-builder"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://www.linkedin.com/*"],
@@ -15,7 +17,7 @@ export const config: PlasmoCSConfig = {
 
 export const getStyle: PlasmoGetStyle = () => {
   const style = document.createElement("style")
-  style.textContent = cssText
+  style.textContent = scssText
   return style
 }
 
@@ -28,6 +30,28 @@ const PlasmoOverlay = () => {
   const [hiddenMode, setHiddenMode] = useState(false)
   const [hideMessages, setHideMessages] = useState(false)
   const [hideNotifications, setHideNotifications] = useState(false)
+  const [showBuilder, setShowBuilder] = useState(false)
+
+  const dialogRef = useRef<HTMLDialogElement>(null)
+
+  const handleShowBuilderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setShowBuilder(e.target.checked)
+  }
+
+  const onCloseDialog = () => {
+    setShowBuilder(false)
+  }
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+
+    if (showBuilder && !dialog.open) {
+      dialog.showModal()
+    } else if (!showBuilder && dialog.open) {
+      dialog.close()
+    }
+  }, [showBuilder])
 
   useEffect(() => {
     if (shouldRender !== true) return;
@@ -239,6 +263,36 @@ const PlasmoOverlay = () => {
           </span>
         </label>
       </div>
+      <div className="overlay__switch-item">
+        <label className="overlay__switch">
+          <span className="overlay__switch-label"
+                style={{
+                  left: showBuilder ? "12px" : "auto",
+                  right: showBuilder ? "auto" : "16px"
+                }}
+          >{showBuilder ? "AUS" : "AN"}</span>
+          <input className="overlay__switch-input"
+                 type="checkbox"
+                 checked={showBuilder}
+                 onChange={handleShowBuilderChange}
+          />
+          <span className="overlay__switch-slider overlay__switch-slider-round">
+            <span className="overlay__slider-knob">
+              <BrowserIcon className={
+                `overlay__slider-icon ${showBuilder ? "overlay__slider-icon--active" : ""}`}
+              />
+            </span>
+          </span>
+        </label>
+      </div>
+      <dialog className="overlay__dialog"
+              ref={dialogRef} {...{ closedby: "any" } as any}
+              onClose={onCloseDialog}
+              style={{ display: showBuilder ? "initial" : "none" }}
+      >
+        <CloseIcon className="overlay__dialog-close" onClick={onCloseDialog} />
+        <FeedBuilder />
+      </dialog>
     </div>
   )
 }

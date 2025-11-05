@@ -1,0 +1,75 @@
+$primary-color: #3B6FE5FF;
+$input-field-border-color: #ccc;
+
+@mixin button($theme: $primary-color) {
+  border: 0;
+  background-color: $theme;
+  color: white;
+  padding: 11px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #5181E3;;
+  }
+}
+
+@mixin input-field($theme: $input-field-border-color) {
+  border: 1px solid $input-field-border-color;
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.feed-builder {
+  cursor: default;
+
+  &__header {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  &__add-to-list-section {
+    padding: 10px 0;
+  }
+
+  &__create-section {
+    margin-bottom: 12px;
+  }
+
+  &__create-lists-button {
+    @include button();
+    width: 348px;
+  }
+
+  &__create-list-section {
+    display: flex;
+    gap: 12px;
+  }
+
+  &__create-list-section-action {
+    display: flex;
+    gap: 4px;
+  }
+
+  &__create-list-input {
+    @include input-field();
+  }
+
+  &__create-list-button {
+    @include button();
+  }
+
+  &__create-list-cancel {
+    @include button(transparent);
+    color: black;
+
+    &:hover {
+      background-color: rgba(204, 204, 204, 0.5);
+    }
+  }
+}
