@@ -12,7 +12,7 @@ export const STORAGE_KEYS = {
   HIDE_NOTIFICATIONS: 'hideNotifications'
 } as const
 
-interface ProfileMatch {
+export interface ProfileMatch {
   urn: string | null;
   fullName: string;
 }
@@ -70,7 +70,8 @@ export const isAllowedPath = (url: string = window.location.href): boolean => {
 }
 
 export const MESSAGE_TYPES = {
-  URL_PATH_CHANGED: "URL_PATH_CHANGED"
+  URL_PATH_CHANGED: "URL_PATH_CHANGED",
+  PROFILE_DETECTED: "PROFILE_DETECTED",
 } as const
 
 export interface OverlayMessage {

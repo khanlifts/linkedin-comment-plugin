@@ -1,4 +1,8 @@
-import { CSS_CLASSES, getLinkedInMemberFullNameAndUrn, isProfileUrl, STORAGE_KEYS, toggleClassHelper } from "~utils";
+import { CSS_CLASSES, getLinkedInMemberFullNameAndUrn, isProfileUrl, MESSAGE_TYPES, STORAGE_KEYS, toggleClassHelper, type ProfileMatch } from "~utils";
+
+
+
+
 
 // Helper function to wait for the correct iframe using polling
 const waitForCorrectIframe = (callback: (iframe: HTMLIFrameElement) => void) => {
@@ -71,6 +75,21 @@ async function waitForBodyAndApplyState() {
   }
 }
 
+const sendProfileDataToRunTime = (payload: ProfileMatch) => {
+  console.log('payload:', payload)
+  chrome.runtime.sendMessage({
+    type: MESSAGE_TYPES.PROFILE_DETECTED,
+    payload
+  })
+}
+
+const getAndSendResultToRuntime = () => {
+  const result = getLinkedInMemberFullNameAndUrn()
+  if (result) {
+    sendProfileDataToRunTime(result)
+  }
+}
+
 let lastUrl = location.href
 
 const observeDomChanges = () => {
@@ -82,8 +101,8 @@ const observeDomChanges = () => {
     if (isProfileUrl(currentUrl)) {
       if (currentUrl !== lastUrl) {
         lastUrl = currentUrl
-        const result = getLinkedInMemberFullNameAndUrn()
-        console.log("result on URL changed", result)
+
+        getAndSendResultToRuntime()
       } else {
         if (isThrottled) {
           hasPendingCheck = true
@@ -91,16 +110,15 @@ const observeDomChanges = () => {
           isThrottled = true
           hasPendingCheck = false
 
-          const result = getLinkedInMemberFullNameAndUrn()
-          console.log("result 2", result)
+          getAndSendResultToRuntime()
 
           setTimeout(() => {
             isThrottled = false
 
             if (hasPendingCheck) {
               hasPendingCheck = false
-              const result = getLinkedInMemberFullNameAndUrn()
-              console.log("result 3", result)
+
+              getAndSendResultToRuntime()
             }
           }, 1000)
         }

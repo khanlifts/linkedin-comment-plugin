@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react"
-import ListCard from "./list-card";
-import ListSelector from "./list-selector";
-import { supabase } from "~core/supabase"
+import { useEffect, useState } from "react";
+import { supabase } from "~core/supabase";
+import { MESSAGE_TYPES, type ProfileMatch } from "~utils";
+import ListCard from "./list-card"
+import ListSelector from "./list-selector"
+
 
 const FeedBuilder = () => {
   const [isCreating, setIsCreating] = useState(false)
   const [listName, setListName] = useState("")
+  const [profile, setProfile] = useState<ProfileMatch | null>(null)
 
   const handleCreateClick = () => {
     if (listName.trim().length === 0) return
@@ -19,20 +22,31 @@ const FeedBuilder = () => {
   }
 
   useEffect(() => {
-    async function supaBaseInit() {
-      console.log('supabase init')
-      const { data, error } = await supabase
-        .from('feed-builder')
-        .insert({
-          name: 'Test Name',
-          urn: 'Test URN'
-        })
-
-      console.log('data', data)
-      console.log('error:', error)
+    const listener = (message: any) => {
+      console.log('message', message)
+      if (message.type === MESSAGE_TYPES.PROFILE_DETECTED) {
+        console.log('profile detected', message.payload)
+        setProfile(message.payload)
+      }
     }
 
-    supaBaseInit()
+    chrome.runtime.onMessage.addListener(listener)
+    return () => chrome.runtime.onMessage.removeListener(listener)
+
+    // async function supaBaseInit() {
+    //   console.log('supabase init')
+    //   const { data, error } = await supabase
+    //     .from('feed-builder')
+    //     .insert({
+    //       name: 'Test Name',
+    //       urn: 'Test URN'
+    //     })
+    //
+    //   console.log('data', data)
+    //   console.log('error:', error)
+    // }
+    //
+    // supaBaseInit()
 
   }, [])
 
@@ -40,10 +54,12 @@ const FeedBuilder = () => {
     <div className="feed-builder">
       <div className="feed-builder__header">FeedBuilder</div>
       <div className="feed-builder__add-to-list-section">
-        <button className="feed-builder__create-lists-button">
-          + Add to list
-        </button>
-        <ListSelector/>
+        { profile ? (<>
+            <button className="feed-builder__create-lists-button">+ Add to list</button>
+          <ListSelector />
+        </>) :
+          <p>No profile detected</p>
+        }
       </div>
       <div className="feed-builder__create-section">
         {!isCreating ? (
